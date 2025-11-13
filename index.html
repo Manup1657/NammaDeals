@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NammaDeals by Muddu Priya — Namma Offers, Namma Savings.</title>
+  <title>NammaDeals — Namma Offers, Namma Savings.</title>
   <link rel="stylesheet" href="styles.css">
-  <meta name="description" content="NammaDeals - Local and national deals updated frequently. Join our Telegram or WhatsApp to get the best offers in Mysuru and Karnataka.">
 </head>
 <body>
   <header class="hero">
@@ -29,54 +28,31 @@
   </header>
 
   <main class="container">
-    <section class="meta">
-      <div class="timer">Deals refreshed: <span id="refresh-timer">every 3 hours</span></div>
-      <div class="share-earn">Share & Earn: Refer 5 friends, get early access</div>
+    <nav class="tabs">
+      <button class="tab active" data-target="deals">🔥 Deals</button>
+      <button class="tab" data-target="bestsellers">🏆 Best Sellers</button>
+    </nav>
+
+    <section id="deals-view" class="view">
+      <h2>🔥 Latest Deals</h2>
+      <div id="deals-grid" class="grid"></div>
     </section>
 
-    <section id="local-deals">
-      <h2 data-en="Top Offers in Mysuru" data-kn="ಮೈಸೂರು ನಿಮಿಷದ ಡೀಲ್ಗಳು">Top Offers in Mysuru</h2>
-      <div id="deals-mysuru" class="grid local-grid"></div>
-    </section>
-
-    <section id="regional-deals">
-      <h2 data-en="Hot in Karnataka" data-kn="ಕರ್ನಾಟಕದಲ್ಲಿ ಹಾಟ್ ಡೀಲ್ಗಳು">Hot in Karnataka</h2>
-      <div id="deals-karnataka" class="grid local-grid"></div>
-    </section>
-
-    <section id="national-deals">
-      <h2 data-en="Top National Deals" data-kn="ಜಾಗತಿಕ ಟಾಪ್ ಡೀಲ್ಗಳು">Top National Deals</h2>
-      <div id="deals-national" class="grid"></div>
+    <section id="bestsellers-view" class="view hidden">
+      <h2>🏆 Amazon Best Sellers</h2>
+      <div id="bestsellers-grid" class="grid"></div>
     </section>
 
     <section class="about">
-      <h3 data-en="How NammaDeals helps you" data-kn="ನಮ್ಮ ಡೀಲ್ಸ್ ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ">How NammaDeals helps you</h3>
-      <p data-en="NammaDeals curates top offers and provides easy sharing, price tracking, and local-focused collections. Click 'View Deal' to visit the retailer with our affiliate code." data-kn="ನಮ್ಮ ಡೀಲ್ಸ್ ಅತ್ಯುತ್ತಮ ಆಫರ್‌ಗಳನ್ನು ಸಂಗ್ರಹಿಸುತ್ತದೆ ಮತ್ತು ಹಂಚಿಕೆ, ಬೆಲೆ ಟ್ರ್ಯಾಕಿಂಗ್ ಮತ್ತು ಸ್ಥಳೀಯ ಸಂಗ್ರಹಗಳನ್ನು ನೀಡುತ್ತದೆ.">NammaDeals curates top offers and provides easy sharing, price tracking, and local-focused collections. Click 'View Deal' to visit the retailer with our affiliate code.</p>
-    </section>
-
-    <section class="tools">
-      <h3 data-en="Quick Tools" data-kn="ತ್ವರಿತ ಟೂಲ್ಸ್">Quick Tools</h3>
-      <div class="tools-grid">
-        <div class="tool card">
-          <h4 data-en="Price Tracker (Beta)" data-kn="ಬೆಲೆ ಟ್ರ್ಯಾಕರ್ (ಬೇಟಾ)">Price Tracker (Beta)</h4>
-          <p data-en="Click 'Track Price' on any deal to save it to your local tracker (stored in browser)." data-kn="ಯಾವುದೇ ಡೀಲ್ನ ಮೇಲೆ 'ಬೆಲೆ ಟ್ರ್ಯಾಕ್' ಕ್ಲಿಕ್ ಮಾಡಿ ಮತ್ತು ಅದನ್ನು ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಉಳಿಸಿ.">Click 'Track Price' on any deal to save it to your local tracker (stored in browser).</p>
-        </div>
-        <div class="tool card">
-          <h4 data-en="Verified Deals" data-kn="ದ್ವಾರಪೂರಿತ ಡೀಲ್ಗಳು">Verified Deals</h4>
-          <p data-en="Our team reviews top deals and marks them as verified to reduce bad links." data-kn="ಟೀಮ್ ಟಾಪ್ ಡೀಲ್ಗಳನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ ಮತ್ತು ಅವುಗಳನ್ನು ದೃಢೀಕರಿಸುತ್ತದೆ.">Our team reviews top deals and marks them as verified to reduce bad links.</p>
-        </div>
-        <div class="tool card">
-          <h4 data-en="Share & Earn" data-kn="ಹಂಚಿಕೆ & ಗಳಿಕೆ">Share & Earn</h4>
-          <p data-en="Refer friends and unlock early deals." data-kn="ಸ್ನೇಹಿತರನ್ನು ಉಲ್ಲೇಖಿಸಿ ಮತ್ತು ಪೂರ್ವ ಪ್ರವೇಶ ಪಡೆಯಿರಿ.">Refer friends and unlock early deals.</p>
-        </div>
-      </div>
+      <h3>How NammaDeals helps you</h3>
+      <p>NammaDeals curates top offers and shows best sellers. Click 'View Deal' to open retailer pages. When your affiliate ID is active, links will include your tag.</p>
     </section>
   </main>
 
   <footer class="footer">
-    <p>Affiliate Disclosure: We use affiliate links (Amazon Associate ID: discoshop-21). We may earn a commission when you buy through links on this site.</p>
+    <p>Affiliate Disclosure: We use affiliate links (Amazon Associate ID placeholder). We may earn commission when purchases are made through links on this site.</p>
   </footer>
 
-<script src="script.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
