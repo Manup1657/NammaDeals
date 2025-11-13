@@ -1,0 +1,34 @@
+{
+  "generated_at": "",
+  "deals": [
+    {
+      "title": "Noise Wireless Earbuds (Example)",
+      "price": "1,299",
+      "price_text": "\u20b91,299 \u2014 Lightning Deal",
+      "affiliate_link": "https://www.amazon.in/dp/EXAMPLE?tag=discoshop-21",
+      "image": "https://via.placeholder.com/300x180.png?text=Earbuds",
+      "source": "amazon.in",
+      "local": "mysuru",
+      "verified": true
+    },
+    {
+      "title": "Kitchen Mixer \u2014 20% off",
+      "price": "3,999",
+      "price_text": "\u20b93,999 \u2014 Deal",
+      "affiliate_link": "https://www.amazon.in/dp/EX2?tag=discoshop-21",
+      "image": "https://via.placeholder.com/300x180.png?text=Mixer",
+      "source": "amazon.in",
+      "local": "karnataka",
+      "verified": false
+    },
+    {
+      "title": "Smartwatch Mega Offer",
+      "price": "2,499",
+      "price_text": "\u20b92,499 \u2014 Trending",
+      "affiliate_link": "https://www.amazon.in/dp/EX3?tag=discoshop-21",
+      "image": "https://via.placeholder.com/300x180.png?text=Watch",
+      "source": "amazon.in",
+      "verified": false
+    }
+  ]
+}
