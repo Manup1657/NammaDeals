@@ -1,6 +1,6 @@
 // NammaDeals client script
 // Replace YOUR_GITHUB_USERNAME and REPO as needed
-const GITHUB_USER = 'YOUR_GITHUB_USERNAME';
+const GITHUB_USER = 'NammaDeals';
 const REPO = 'NammaDeals';
 const BASE_RAW = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/`;
 
