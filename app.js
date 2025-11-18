@@ -1,158 +1,178 @@
-// app.js - NammaDeals PRO client
-const GITHUB_USER = 'manup1657'; // <-- set your github username here
-const REPO = 'NammaDeals';
-const BASE_RAW = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/`;
-const AFFILIATE_TAG = ''; // set 'discoshop-21' when ready
-const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes
-
-// Categories - initial recommended list
-const CATEGORIES = [
-  {id:'all', label:'All'},
-  {id:'electronics', label:'Electronics'},
-  {id:'mobiles', label:'Mobiles'},
-  {id:'fashion', label:'Fashion'},
-  {id:'home', label:'Home & Kitchen'},
-  {id:'beauty', label:'Beauty'},
-  {id:'appliances', label:'Appliances'},
-  {id:'trending', label:'Trending'}
-];
-
-let state = {
-  items: [], // combined deals or current tab list
-  tab: 'deals',
-  displayedCount: 24,
-  search: ''
+// =============================
+// GLOBAL STATE
+// =============================
+const state = {
+  items: [],
+  filteredItems: [],
+  categories: new Set(),
+  searchTerm: "",
+  selectedCategory: "all"
 };
 
-function q(id){return document.getElementById(id)}
-function baseFetch(name){ return fetch(BASE_RAW + name + '?_=' + Date.now()).then(r=>{ if(!r.ok) throw r; return r.json() }) }
+// =============================
+// HELPER: AI-style category detection
+// =============================
+function inferCategory(title = "") {
+  const t = title.toLowerCase();
 
-function buildCategories(){
-  const bar = document.getElementById('category-bar');
-  bar.innerHTML = '';
-  CATEGORIES.forEach(c=>{
-    const btn = document.createElement('button');
-    btn.className = 'cat-pill' + (c.id==='all'?' active':'');
-    btn.textContent = c.label;
-    btn.dataset.cat = c.id;
-    btn.onclick = ()=>{ document.querySelectorAll('.cat-pill').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); renderProducts(); }
-    bar.appendChild(btn);
-  });
+  if (t.includes("phone") || t.includes("mobile") || t.includes("smartphone") || t.includes("iphone"))
+    return "Mobiles";
+
+  if (t.includes("laptop") || t.includes("notebook"))
+    return "Laptops";
+
+  if (t.includes("headphone") || t.includes("earbud") || t.includes("earphone"))
+    return "Audio";
+
+  if (t.includes("watch") || t.includes("smartwatch"))
+    return "Wearables";
+
+  if (t.includes("camera"))
+    return "Camera";
+
+  if (t.includes("shoes") || t.includes("shirt") || t.includes("dress"))
+    return "Fashion";
+
+  if (t.includes("kitchen") || t.includes("mixer") || t.includes("cook"))
+    return "Home & Kitchen";
+
+  return "Other";
 }
 
-function makeCard(item){
-  const el = document.createElement('div'); el.className = 'card';
-  const img = document.createElement('img'); img.loading='lazy'; img.src = item.image || 'https://via.placeholder.com/300x180.png?text=No+Image'; el.appendChild(img);
-  const h = document.createElement('h4'); h.textContent = item.title || 'Untitled'; el.appendChild(h);
-  const p = document.createElement('div'); p.className='price'; p.textContent = item.price_text || item.price || ''; el.appendChild(p);
-  const actions = document.createElement('div'); actions.className='actions';
-  const view = document.createElement('a'); view.className='button'; view.target='_blank';
-  let link = item.affiliate_link || item.link || '#';
-  // attach affiliate tag if provided globally and not present
-  if(AFFILIATE_TAG && link.includes('amazon.in') && !link.includes('tag=')){
-    const url = new URL(link);
-    url.searchParams.set('tag', AFFILIATE_TAG);
-    link = url.toString();
-  }
-  view.href = link; view.textContent = 'View Deal';
-  const share = document.createElement('button'); share.className='icon-btn'; share.textContent='Share';
-  share.onclick = ()=>{ navigator.share ? navigator.share({title:item.title, url:link}).catch(()=>window.open('https://wa.me/?text=' + encodeURIComponent(item.title+' '+link))) : window.open('https://wa.me/?text=' + encodeURIComponent(item.title+' '+link)) }
-  const track = document.createElement('button'); track.className='icon-btn'; track.textContent='Track';
-  track.onclick = ()=>{ trackPrice(item) };
-  actions.appendChild(view); actions.appendChild(share); actions.appendChild(track);
-  el.appendChild(actions);
-  return el;
+// =============================
+// GENERIC FETCHER
+// =============================
+async function baseFetch(path) {
+  const res = await fetch(path + "?v=" + Date.now());
+  if (!res.ok) throw new Error("Failed: " + path);
+  return res.json();
 }
 
-function trackPrice(item){
-  const key='nm_tracked';
-  const arr = JSON.parse(localStorage.getItem(key)||'[]');
-  if(arr.find(x=>x.link===item.link)){ alert('Already tracked') ; return }
-  arr.push({title:item.title,link:item.link,added:Date.now()});
-  localStorage.setItem(key, JSON.stringify(arr));
-  alert('Added to Price Tracker (saved locally).');
-}
+// =============================
+// LOAD deals.json
+// =============================
+async function loadDealsJSON() {
+  try {
+    const data = await baseFetch("deals.json");
+    const arr = (data.items || []).map(d => ({
+      ...d,
+      category: d.category || inferCategory(d.title)
+    }));
 
-function renderProducts(){
-  const selectedCat = document.querySelector('.cat-pill.active')?.dataset?.cat || 'all';
-  const grid = document.getElementById('grid-container');
-  grid.innerHTML = '';
-  const search = q('search-box').value.trim().toLowerCase();
-  const filtered = state.items.filter(it=>{
-    const okCat = selectedCat==='all' || (it.category && it.category.toLowerCase()===selectedCat);
-    const okSearch = !search || ((it.title||'').toLowerCase().includes(search) || (it.brand||'').toLowerCase().includes(search));
-    return okCat && okSearch;
-  });
-  const slice = filtered.slice(0, state.displayedCount);
-  if(slice.length===0){ grid.innerHTML = '<div style="color:#6b7785;padding:40px;text-align:center">No deals right now — check back soon.</div>'; return }
-  slice.forEach(item=> grid.appendChild(makeCard(item)));
-}
-
-async function loadDealsJSON(){
-  try{
-    const data = await baseFetch(state.tab==='deals' ? 'deals.json' : 'bestsellers.json');
-    // unify to items[] structure
-    if(state.tab==='deals'){
-      const arr = (data.deals || []).map(d => ({...d, category: d.category || inferCategory(d.title)}));
-      state.items = arr;
-    } else {
-      const arr = (data.items || []).map(d => ({...d, category: d.category || inferCategory(d.title)}));
-      state.items = arr;
-    }
-    state.displayedCount = 24;
+    state.items = [...state.items, ...arr];
+    buildCategoryList();
     renderProducts();
-    // set hero (first item)
-    setHero(state.items[0]);
-  }catch(e){
-    console.error(e);
-    document.getElementById('grid-container').innerHTML = '<div style="color:#6b7785;padding:40px;text-align:center">Failed to load data.</div>';
+
+  } catch (e) {
+    console.error("deal.json error:", e);
   }
 }
 
-function setHero(item){
-  const rot = document.getElementById('hero-rotator');
-  if(!item){ rot.innerHTML = '<div class="card">No deal</div>'; return }
-  rot.innerHTML = '';
-  const c = document.createElement('div'); c.className='card';
-  const img = document.createElement('img'); img.src = item.image || 'https://via.placeholder.com/400x180.png?text=Deal'; img.style.height='180px'; c.appendChild(img);
-  const h = document.createElement('h4'); h.textContent = item.title; c.appendChild(h);
-  const p = document.createElement('div'); p.className='price'; p.textContent = item.price_text || item.price; c.appendChild(p);
-  const a = document.createElement('a'); a.className='button'; a.target='_blank';
-  a.href = item.affiliate_link || item.link || '#'; a.textContent='View Deal'; c.appendChild(a);
-  rot.appendChild(c);
+// =============================
+// LOAD manual_products.json
+// =============================
+async function loadManualProducts() {
+  try {
+    const data = await baseFetch("manual_products.json");
+    const arr = (data.items || []).map(d => ({
+      ...d,
+      category: d.category || inferCategory(d.title)
+    }));
+
+    state.items = [...arr, ...state.items];
+    buildCategoryList();
+    renderProducts();
+
+  } catch (e) {
+    console.error("manual_products.json error:", e);
+  }
 }
 
-function inferCategory(title=''){
-  title = (title||'').toLowerCase();
-  if(!title) return 'all';
-  if(/phone|mobile|oneplus|samsung|redmi|vivo|oppo|xiaomi|moto/.test(title)) return 'mobiles';
-  if(/earbud|earphone|headphone|airpod|speaker|tablet|laptop|charger|power bank|smartwatch/.test(title)) return 'electronics';
-  if(/kurta|tshirt|jeans|shoes|saree|dress|hoodie|jean|jacket/.test(title)) return 'fashion';
-  if(/mixer|kettle|pressure|cookware|pan|dishwasher|microwave/.test(title)) return 'home';
-  if(/cream|soap|shampoo|skincare|makeup|perfume/.test(title)) return 'beauty';
-  if(/tv|ac|refrigerator|washing machine|air conditioner/.test(title)) return 'appliances';
-  return 'trending';
-}
+// =============================
+// BUILD CATEGORY LIST UI
+// =============================
+function buildCategoryList() {
+  state.categories = new Set(state.items.map(p => p.category));
 
-document.addEventListener('DOMContentLoaded', ()=>{
-  // set up category bar
-  buildCategories();
-  // events
-  q('search-box').addEventListener('input', ()=>renderProducts());
-  document.querySelectorAll('.tab').forEach(tb=>{
-    tb.addEventListener('click', e=>{
-      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      e.currentTarget.classList.add('active');
-      state.tab = e.currentTarget.dataset.tab;
-      loadDealsJSON();
-    })
+  const el = document.getElementById("categoryList");
+  if (!el) return;
+
+  el.innerHTML = `<option value="all">All</option>`;
+  [...state.categories].forEach(cat => {
+    el.innerHTML += `<option value="${cat}">${cat}</option>`;
   });
-  q('load-more').addEventListener('click', ()=>{ state.displayedCount += 24; renderProducts();});
-  q('dark-toggle').addEventListener('click', ()=>document.body.classList.toggle('dark'));
-  q('lang-toggle').addEventListener('click', ()=>{ /* add KN/EN translations later */ alert('Kannada toggle: coming soon') });
-  q('telegram-link').href = 'https://t.me/NammaDeals';
-  // initial load
+}
+
+// =============================
+// FILTER & RENDER
+// =============================
+function applyFilters() {
+  let arr = [...state.items];
+
+  if (state.searchTerm) {
+    const s = state.searchTerm.toLowerCase();
+    arr = arr.filter(p => p.title.toLowerCase().includes(s));
+  }
+
+  if (state.selectedCategory !== "all") {
+    arr = arr.filter(p => p.category === state.selectedCategory);
+  }
+
+  state.filteredItems = arr;
+}
+
+function renderProducts() {
+  applyFilters();
+
+  const container = document.getElementById("productGrid");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  state.filteredItems.forEach(p => {
+    container.innerHTML += `
+      <div class="item-card">
+          <img src="${p.image}" alt="">
+          <h3>${p.title}</h3>
+          <p class="cat">${p.category}</p>
+          <div class="price">₹${p.price || "–"}</div>
+          <a href="${p.url}" target="_blank" class="btn">View Deal</a>
+      </div>
+    `;
+  });
+}
+
+// =============================
+// EVENT LISTENERS
+// =============================
+document.addEventListener("DOMContentLoaded", () => {
+
+  // Search input
+  const s = document.getElementById("searchBox");
+  if (s) {
+    s.addEventListener("input", e => {
+      state.searchTerm = e.target.value;
+      renderProducts();
+    });
+  }
+
+  // Category filter
+  const c = document.getElementById("categoryList");
+  if (c) {
+    c.addEventListener("change", e => {
+      state.selectedCategory = e.target.value;
+      renderProducts();
+    });
+  }
+
+  // LOAD ALL SOURCES
   loadDealsJSON();
-  // auto refresh
-  setInterval(()=>{ loadDealsJSON(); }, REFRESH_INTERVAL);
+  loadManualProducts();
+
+  // Refresh every 15 mins
+  setInterval(() => {
+    state.items = [];
+    loadDealsJSON();
+    loadManualProducts();
+  }, 15 * 60 * 1000);
 });
