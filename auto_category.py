@@ -1,32 +1,50 @@
 #!/usr/bin/env python3
-import json, re
+import requests, json, time, sys
+from bs4 import BeautifulSoup
 
-# keyword-to-category mapping
-MAP = {
-  'mobiles': ['phone','mobile','oneplus','samsung','redmi','vivo','oppo','itel','xiaomi'],
-  'electronics': ['earbud','earphone','headphone','speaker','charger','power bank','camera','laptop','tablet','watch'],
-  'fashion': ['kurta','tshirt','jeans','saree','dress','shoes','shirt','hoodie','jacket','trouser'],
-  'home': ['mixer','kettle','cookware','pressure','pan','mug','kitchen','vacuum'],
-  'beauty': ['cream','soap','shampoo','skincare','makeup','perfume'],
-  'appliances': ['refrigerator','washing','ac ','air conditioner','microwave','grill'],
-}
-def categorize(title):
-    t = title.lower()
-    for cat, kws in MAP.items():
-        for kw in kws:
-            if kw in t:
-                return cat
-    return 'trending'
+AFFILIATE_TAG = "discoshop-21"
+INPUT = "input_links.txt"
+OUT = "manual_products.json"
+HEADERS = {'User-Agent':'Mozilla/5.0'}
 
-def process(infile='deals.json', outfile='deals.json'):
-    with open(infile,'r',encoding='utf-8') as f: data = json.load(f)
-    arr = data.get('deals') or data.get('items') or []
-    for it in arr:
-        if not it.get('category'):
-            it['category'] = categorize(it.get('title',''))
-    data['deals'] = arr
-    with open(outfile,'w',encoding='utf-8') as f: json.dump(data,f,indent=2,ensure_ascii=False)
-    print('Categorized', len(arr))
+def add_affiliate(url):
+    if 'tag=' in url: return url
+    if '?' in url: return url + '&tag=' + AFFILIATE_TAG
+    return url + '?tag=' + AFFILIATE_TAG
+
+def fetch_amazon(url):
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        title = soup.select_one('#productTitle')
+        price = soup.select_one('.a-price .a-offscreen') or soup.select_one('#priceblock_ourprice') or soup.select_one('#priceblock_dealprice')
+        img = soup.select_one('#landingImage') or soup.select_one('.imgTagWrapper img')
+        return {
+            'title': title.get_text(strip=True) if title else url,
+            'price_text': price.get_text(strip=True) if price else '',
+            'image': img.get('src') if img else '',
+            'link': add_affiliate(url)
+        }
+    except Exception as e:
+        print("fetch_amazon error", e)
+        return None
+
+def main():
+    lines = []
+    try:
+        with open(INPUT,'r',encoding='utf-8') as f:
+            lines = [l.strip() for l in f if l.strip()]
+    except:
+        lines = []
+    items = []
+    for url in lines:
+        if 'amazon' in url:
+            p = fetch_amazon(url)
+            if p: items.append(p)
+        time.sleep(0.5)
+    with open(OUT,'w',encoding='utf-8') as f:
+        json.dump({'items': items}, f, indent=2, ensure_ascii=False)
+    print("Saved manual products:", len(items))
 
 if __name__=='__main__':
-    process()
+    main()
