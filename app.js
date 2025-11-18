@@ -10,7 +10,7 @@ const state = {
 };
 
 // =============================
-// HELPER: AI-style category detection
+// CATEGORY DETECTOR
 // =============================
 function inferCategory(title = "") {
   const t = title.toLowerCase();
@@ -43,53 +43,51 @@ function inferCategory(title = "") {
 // GENERIC FETCHER
 // =============================
 async function baseFetch(path) {
-  const res = await fetch(path + "?v=" + Date.now());
-  if (!res.ok) throw new Error("Failed: " + path);
-  return res.json();
+  try {
+    const res = await fetch(path + "?v=" + Date.now());
+    if (!res.ok) throw new Error("Failed to load " + path);
+
+    return res.json();
+  } catch (err) {
+    console.error("Fetch error:", err);
+    return { items: [] };  // prevents crash
+  }
 }
 
 // =============================
 // LOAD deals.json
 // =============================
 async function loadDealsJSON() {
-  try {
-    const data = await baseFetch("deals.json");
-    const arr = (data.items || []).map(d => ({
-      ...d,
-      category: d.category || inferCategory(d.title)
-    }));
+  const data = await baseFetch("deals.json");
+  const arr = (data.items || []).map(d => ({
+    ...d,
+    category: d.category || inferCategory(d.title)
+  }));
 
-    state.items = [...state.items, ...arr];
-    buildCategoryList();
-    renderProducts();
+  state.items = [...state.items, ...arr];
 
-  } catch (e) {
-    console.error("deal.json error:", e);
-  }
+  buildCategoryList();
+  renderProducts();
 }
 
 // =============================
 // LOAD manual_products.json
 // =============================
 async function loadManualProducts() {
-  try {
-    const data = await baseFetch("manual_products.json");
-    const arr = (data.items || []).map(d => ({
-      ...d,
-      category: d.category || inferCategory(d.title)
-    }));
+  const data = await baseFetch("manual_products.json");
+  const arr = (data.items || []).map(d => ({
+    ...d,
+    category: d.category || inferCategory(d.title)
+  }));
 
-    state.items = [...arr, ...state.items];
-    buildCategoryList();
-    renderProducts();
+  state.items = [...arr, ...state.items];
 
-  } catch (e) {
-    console.error("manual_products.json error:", e);
-  }
+  buildCategoryList();
+  renderProducts();
 }
 
 // =============================
-// BUILD CATEGORY LIST UI
+// BUILD CATEGORY LIST
 // =============================
 function buildCategoryList() {
   state.categories = new Set(state.items.map(p => p.category));
@@ -98,22 +96,25 @@ function buildCategoryList() {
   if (!el) return;
 
   el.innerHTML = `<option value="all">All</option>`;
+
   [...state.categories].forEach(cat => {
     el.innerHTML += `<option value="${cat}">${cat}</option>`;
   });
 }
 
 // =============================
-// FILTER & RENDER
+// FILTERS
 // =============================
 function applyFilters() {
   let arr = [...state.items];
 
-  if (state.searchTerm) {
+  // Search
+  if (state.searchTerm.trim() !== "") {
     const s = state.searchTerm.toLowerCase();
     arr = arr.filter(p => p.title.toLowerCase().includes(s));
   }
 
+  // Category
   if (state.selectedCategory !== "all") {
     arr = arr.filter(p => p.category === state.selectedCategory);
   }
@@ -121,6 +122,9 @@ function applyFilters() {
   state.filteredItems = arr;
 }
 
+// =============================
+// RENDER PRODUCTS
+// =============================
 function renderProducts() {
   applyFilters();
 
@@ -129,10 +133,15 @@ function renderProducts() {
 
   container.innerHTML = "";
 
+  if (state.filteredItems.length === 0) {
+    container.innerHTML = `<p class="no-results">No products found</p>`;
+    return;
+  }
+
   state.filteredItems.forEach(p => {
     container.innerHTML += `
       <div class="item-card">
-          <img src="${p.image}" alt="">
+          <img src="${p.image}" alt="product">
           <h3>${p.title}</h3>
           <p class="cat">${p.category}</p>
           <div class="price">₹${p.price || "–"}</div>
@@ -147,7 +156,7 @@ function renderProducts() {
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Search input
+  // Search input listener
   const s = document.getElementById("searchBox");
   if (s) {
     s.addEventListener("input", e => {
@@ -156,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Category filter
+  // Category select listener
   const c = document.getElementById("categoryList");
   if (c) {
     c.addEventListener("change", e => {
@@ -165,11 +174,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // LOAD ALL SOURCES
+  // Load product JSON files
   loadDealsJSON();
   loadManualProducts();
 
-  // Refresh every 15 mins
+  // Auto-refresh
   setInterval(() => {
     state.items = [];
     loadDealsJSON();
