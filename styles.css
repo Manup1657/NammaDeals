@@ -1,7 +1,5 @@
-/* styles.css — NammaDeals PRO UI */
 :root{
   --bg:#f5f7fb; --card:#ffffff; --muted:#6b7785; --accent:#ff8a00; --accent-2:#ff5722; --text:#0b1724;
-  --glass: rgba(255,255,255,0.7);
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
@@ -13,30 +11,26 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helveti
 .center{flex:1;padding:0 20px}
 .center input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #e6eef7;background:#fff;outline:none}
 .right{display:flex;gap:8px;align-items:center}
-/* categories */
-.categories{display:flex;gap:8px;padding:12px 20px;overflow:auto;background:transparent}
-.cat-pill{padding:8px 14px;border-radius:999px;background:white;border:1px solid rgba(10,16,24,0.04);cursor:pointer;white-space:nowrap}
-.cat-pill.active{background:linear-gradient(90deg,#ff8a00,#ffb37a);color:white;border-color:transparent;box-shadow:0 6px 18px rgba(255,138,0,0.12)}
+.categories{display:flex;gap:8px;padding:12px 20px}
+.categories select{padding:8px;border-radius:8px;border:1px solid #e6eef7}
 .main{max-width:1200px;margin:18px auto;padding:0 18px}
 .hero{display:flex;gap:14px;align-items:stretch;margin-bottom:12px}
 .hero-left{flex:0 0 340px;background:linear-gradient(180deg,rgba(255,138,0,.07),rgba(255,183,122,.03));padding:18px;border-radius:12px}
-.hero-left h1{margin:0;font-size:20px;color:var(--accent)}
 .hero-right{flex:1;display:flex;gap:12px;align-items:center}
 .tabs{display:flex;gap:8px;margin:16px 0}
 .tab{padding:8px 12px;border-radius:8px;background:white;border:1px solid rgba(10,16,24,0.04);cursor:pointer}
 .tab.active{background:var(--accent);color:white;border-color:transparent}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
-.card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 6px 16px rgba(12,20,30,0.06);display:flex;flex-direction:column;min-height:220px}
-.card img{width:100%;height:140px;object-fit:contain;border-radius:8px;background:#fbfbfb}
-.card h4{margin:8px 0 4px;font-size:15px}
-.card .price{color:var(--accent-2);font-weight:700;font-size:16px;margin-top:auto}
-.card .actions{display:flex;gap:8px;margin-top:10px}
+.item-card{background:var(--card);padding:12px;border-radius:12px;box-shadow:0 6px 16px rgba(12,20,30,0.06);display:flex;flex-direction:column;min-height:240px}
+.item-card img{width:100%;height:140px;object-fit:contain;border-radius:8px;background:#fbfbfb}
+.item-card h3{margin:8px 0 6px;font-size:15px}
+.item-card .cat{color:var(--muted);font-size:13px}
+.item-card .price{color:var(--accent-2);font-weight:700;margin-top:auto}
 .button{background:var(--accent-2);color:white;padding:8px 10px;border-radius:8px;text-decoration:none;display:inline-block;border:none;cursor:pointer}
 .icon-btn{padding:8px;border-radius:8px;border:1px solid rgba(10,16,24,0.04);background:white;cursor:pointer}
 .footer{display:flex;justify-content:space-between;padding:18px 20px;margin-top:28px;background:transparent;color:var(--muted);font-size:13px}
-#load-more-wrap{text-align:center;margin:18px}
 @media (max-width:800px){.hero{flex-direction:column}.hero-left{width:100%}}
-/* Dark mode toggle (applied by .dark on body) */
 body.dark{background:#081018;color:#dcefff}
 body.dark .site-header{background:#071026}
-body.dark .card{background:#071226;box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+body.dark .item-card{background:#071226;box-shadow:0 6px 20px rgba(0,0,0,0.6)}
+.no-results{padding:40px;text-align:center;color:var(--muted)}
