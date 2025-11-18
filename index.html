@@ -4,55 +4,72 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NammaDeals — Namma Offers, Namma Savings.</title>
+  <meta name="description" content="NammaDeals: curated Amazon & Flipkart deals for Mysore and Karnataka. Updated frequently." />
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="logo.svg">
 </head>
 <body>
-  <header class="hero">
-    <div class="container header-grid">
-      <div>
-        <h1 id="brand">NammaDeals</h1>
-        <div class="kan">ನಮ್ಮ ಡೀಲ್ಸ್</div>
-        <p class="tag">Namma Offers, Namma Savings.</p>
+  <header class="site-header">
+    <div class="left">
+      <img src="logo.svg" alt="NammaDeals" class="logo" />
+      <div class="brand">
+        <div class="brand-name">NammaDeals</div>
+        <div class="brand-sub">ನಮ್ಮ ಡೀಲ್ಸ್ • Namma Offers, Namma Savings.</div>
       </div>
-      <div class="top-actions">
-        <div class="lang-toggle">
-          <button id="lang-en" class="small-btn active">EN</button>
-          <button id="lang-kn" class="small-btn">KN</button>
-        </div>
-        <div class="contact-buttons">
-          <a id="join-whatsapp" class="button outline" href="#" target="_blank">WhatsApp</a>
-          <a id="join-telegram" class="button" href="#" target="_blank">Telegram</a>
-        </div>
-      </div>
+    </div>
+
+    <div class="center">
+      <input id="search-box" placeholder="Search deals, brands or categories..." aria-label="Search deals" />
+    </div>
+
+    <div class="right">
+      <button id="dark-toggle" class="icon-btn" title="Dark mode">🌓</button>
+      <button id="lang-toggle" class="icon-btn" title="Kannada / English">KN</button>
+      <a id="telegram-link" class="cta" target="_blank">Join Telegram</a>
     </div>
   </header>
 
-  <main class="container">
-    <nav class="tabs">
-      <button class="tab active" data-target="deals">🔥 Deals</button>
-      <button class="tab" data-target="bestsellers">🏆 Best Sellers</button>
-    </nav>
+  <nav class="categories" id="category-bar" aria-label="Categories">
+    <!-- categories injected by app.js -->
+  </nav>
 
-    <section id="deals-view" class="view">
-      <h2>🔥 Latest Deals</h2>
-      <div id="deals-grid" class="grid"></div>
+  <main class="main">
+    <section class="hero">
+      <div class="hero-left">
+        <h1>Deal of the Day</h1>
+        <p id="hero-desc">Best picks updated frequently</p>
+      </div>
+      <div class="hero-right" id="hero-rotator">
+        <!-- big rotating Deal of the Day card -->
+      </div>
     </section>
 
-    <section id="bestsellers-view" class="view hidden">
-      <h2>🏆 Amazon Best Sellers</h2>
-      <div id="bestsellers-grid" class="grid"></div>
+    <section class="tabs">
+      <button class="tab active" data-tab="deals">🔥 Deals</button>
+      <button class="tab" data-tab="bestsellers">🏆 Best Sellers</button>
+      <button class="tab" data-tab="flipkart" disabled>🟣 Flipkart (coming)</button>
     </section>
 
-    <section class="about">
-      <h3>How NammaDeals helps you</h3>
-      <p>NammaDeals curates top offers and shows best sellers. Click 'View Deal' to open retailer pages. When your affiliate ID is active, links will include your tag.</p>
+    <section id="content-area">
+      <div id="grid-container" class="grid">
+        <!-- cards dynamically loaded here -->
+      </div>
+
+      <div id="load-more-wrap">
+        <button id="load-more" class="button">Load more</button>
+      </div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>Affiliate Disclosure: We use affiliate links (Amazon Associate ID placeholder). We may earn commission when purchases are made through links on this site.</p>
+    <div class="f-left">
+      <strong>NammaDeals</strong> — Local deals & smart savings.
+    </div>
+    <div class="f-right">
+      <small>Affiliate Disclosure: we use affiliate links (when active). Read our privacy policy.</small>
+    </div>
   </footer>
 
-<script src="app.js"></script>
+  <script src="app.js" type="module"></script>
 </body>
 </html>
