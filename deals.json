@@ -1,32 +1,4 @@
 {
-  "deals": [
-    {
-      "title": "boAt Airdopes 141 Bluetooth Earbuds",
-      "price_text": "₹1,299",
-      "link": "https://www.amazon.in/dp/B09N2ZL8SZ?tag=discoshop-21",
-      "image": "https://m.media-amazon.com/images/I/61KNJav3S9L._SL1500_.jpg",
-      "source": "Amazon"
-    },
-    {
-      "title": "Samsung 25W Super Fast Charger for Galaxy Series",
-      "price_text": "₹899",
-      "link": "https://www.amazon.in/dp/B09V1K6ZQ1?tag=discoshop-21",
-      "image": "https://m.media-amazon.com/images/I/51l3Y1Z3eXL._SL1500_.jpg",
-      "source": "Amazon"
-    },
-    {
-      "title": "Noise ColorFit Pulse 3 Smart Watch",
-      "price_text": "₹1,799",
-      "link": "https://www.amazon.in/dp/B0C2JYJ1D3?tag=discoshop-21",
-      "image": "https://m.media-amazon.com/images/I/61v5V7P6aRL._SL1500_.jpg",
-      "source": "Amazon"
-    },
-    {
-      "title": "Mi 10000mAh Power Bank 3i",
-      "price_text": "₹1,099",
-      "link": "https://www.amazon.in/dp/B08HRPDWRS?tag=discoshop-21",
-      "image": "https://m.media-amazon.com/images/I/61B04f0ALWL._SL1500_.jpg",
-      "source": "Amazon"
-    }
-  ]
+  "generated_at": "2025-11-18T20:08:11.760872Z",
+  "deals": []
 }
