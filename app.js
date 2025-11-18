@@ -1,6 +1,11 @@
 // =============================
-// GLOBAL STATE
+// CONFIG
 // =============================
+const GITHUB_USER = "Manup1657";
+const REPO = "NammaDeals";
+
+const BASE_RAW = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/`;
+
 const state = {
   items: [],
   filteredItems: [],
@@ -15,57 +20,58 @@ const state = {
 function inferCategory(title = "") {
   const t = title.toLowerCase();
 
-  if (t.includes("phone") || t.includes("mobile") || t.includes("smartphone") || t.includes("iphone"))
+  if (t.includes("phone") || t.includes("mobile") || t.includes("iphone"))
     return "Mobiles";
 
-  if (t.includes("laptop") || t.includes("notebook"))
+  if (t.includes("laptop"))
     return "Laptops";
 
-  if (t.includes("headphone") || t.includes("earbud") || t.includes("earphone"))
+  if (t.includes("earbud") || t.includes("earphone") || t.includes("headphone"))
     return "Audio";
 
-  if (t.includes("watch") || t.includes("smartwatch"))
+  if (t.includes("watch"))
     return "Wearables";
 
   if (t.includes("camera"))
     return "Camera";
 
-  if (t.includes("shoes") || t.includes("shirt") || t.includes("dress"))
+  if (t.includes("shirt") || t.includes("dress") || t.includes("shoes"))
     return "Fashion";
 
-  if (t.includes("kitchen") || t.includes("mixer") || t.includes("cook"))
+  if (t.includes("kitchen") || t.includes("mixer"))
     return "Home & Kitchen";
 
   return "Other";
 }
 
 // =============================
-// GENERIC FETCHER
+// GENERIC FETCHER (FROM GITHUB)
 // =============================
-async function baseFetch(path) {
-  try {
-    const res = await fetch(path + "?v=" + Date.now());
-    if (!res.ok) throw new Error("Failed to load " + path);
+async function baseFetch(filename) {
+  const url = BASE_RAW + filename + "?v=" + Date.now();
 
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed: " + filename);
     return res.json();
   } catch (err) {
     console.error("Fetch error:", err);
-    return { items: [] };  // prevents crash
+    return { items: [] };
   }
 }
 
 // =============================
-// LOAD deals.json
+// LOAD DEALS.JSON
 // =============================
 async function loadDealsJSON() {
   const data = await baseFetch("deals.json");
+
   const arr = (data.items || []).map(d => ({
     ...d,
     category: d.category || inferCategory(d.title)
   }));
 
   state.items = [...state.items, ...arr];
-
   buildCategoryList();
   renderProducts();
 }
@@ -75,13 +81,13 @@ async function loadDealsJSON() {
 // =============================
 async function loadManualProducts() {
   const data = await baseFetch("manual_products.json");
+
   const arr = (data.items || []).map(d => ({
     ...d,
     category: d.category || inferCategory(d.title)
   }));
 
   state.items = [...arr, ...state.items];
-
   buildCategoryList();
   renderProducts();
 }
@@ -93,8 +99,6 @@ function buildCategoryList() {
   state.categories = new Set(state.items.map(p => p.category));
 
   const el = document.getElementById("categoryList");
-  if (!el) return;
-
   el.innerHTML = `<option value="all">All</option>`;
 
   [...state.categories].forEach(cat => {
@@ -103,18 +107,16 @@ function buildCategoryList() {
 }
 
 // =============================
-// FILTERS
+// PRODUCT FILTER
 // =============================
 function applyFilters() {
   let arr = [...state.items];
 
-  // Search
-  if (state.searchTerm.trim() !== "") {
+  if (state.searchTerm) {
     const s = state.searchTerm.toLowerCase();
     arr = arr.filter(p => p.title.toLowerCase().includes(s));
   }
 
-  // Category
   if (state.selectedCategory !== "all") {
     arr = arr.filter(p => p.category === state.selectedCategory);
   }
@@ -123,62 +125,51 @@ function applyFilters() {
 }
 
 // =============================
-// RENDER PRODUCTS
+// RENDER GRID
 // =============================
 function renderProducts() {
   applyFilters();
 
-  const container = document.getElementById("productGrid");
-  if (!container) return;
-
-  container.innerHTML = "";
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = "";
 
   if (state.filteredItems.length === 0) {
-    container.innerHTML = `<p class="no-results">No products found</p>`;
+    grid.innerHTML = "<p>No products found.</p>";
     return;
   }
 
   state.filteredItems.forEach(p => {
-    container.innerHTML += `
+    grid.innerHTML += `
       <div class="item-card">
-          <img src="${p.image}" alt="product">
+          <img src="${p.image}" />
           <h3>${p.title}</h3>
           <p class="cat">${p.category}</p>
-          <div class="price">₹${p.price || "–"}</div>
-          <a href="${p.url}" target="_blank" class="btn">View Deal</a>
+          <div class="price">₹${p.price || "-"}</div>
+          <a href="${p.url}" class="btn" target="_blank">View Deal</a>
       </div>
     `;
   });
 }
 
 // =============================
-// EVENT LISTENERS
+// EVENTS & INIT
 // =============================
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Search input listener
-  const s = document.getElementById("searchBox");
-  if (s) {
-    s.addEventListener("input", e => {
-      state.searchTerm = e.target.value;
-      renderProducts();
-    });
-  }
+  document.getElementById("searchBox").addEventListener("input", e => {
+    state.searchTerm = e.target.value;
+    renderProducts();
+  });
 
-  // Category select listener
-  const c = document.getElementById("categoryList");
-  if (c) {
-    c.addEventListener("change", e => {
-      state.selectedCategory = e.target.value;
-      renderProducts();
-    });
-  }
+  document.getElementById("categoryList").addEventListener("change", e => {
+    state.selectedCategory = e.target.value;
+    renderProducts();
+  });
 
-  // Load product JSON files
   loadDealsJSON();
   loadManualProducts();
 
-  // Auto-refresh
+  // Auto refresh every 15 min
   setInterval(() => {
     state.items = [];
     loadDealsJSON();
