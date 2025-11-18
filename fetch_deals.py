@@ -1,44 +1,41 @@
 #!/usr/bin/env python3
-# fetch_deals.py - NammaDeals (lightning deals fetcher)
-import requests, json, datetime, time
+import requests, json, time, datetime
 from bs4 import BeautifulSoup
 
-OUT = 'deals.json'
-HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+AFFILIATE_TAG = "discoshop-21"  # set '' to skip appending
+OUT = "deals.json"
+HEADERS = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
 
-def scrape_deals(limit=30):
-    url = 'https://www.amazon.in/gp/goldbox'
-    r = requests.get(url, headers=HEADERS, timeout=15)
+def scrape(limit=60):
+    url = "https://www.amazon.in/gp/goldbox"
+    r = requests.get(url, headers=HEADERS, timeout=20)
     soup = BeautifulSoup(r.text, 'html.parser')
-    deals = []
-    # find deal blocks (best-effort)
-    cards = soup.select('div.dealContainer') or soup.select('div.deal') or soup.select('div.a-section.a-spacing-medium')
-    count = 0
-    for c in cards:
-        if count>=limit: break
-        a = c.select_one('a') or c.select_one('a.a-link-normal')
-        if not a: continue
+    items = []
+    # best-effort: find product links
+    anchors = soup.select('a.a-link-normal')[:limit*2]
+    seen = set()
+    for a in anchors:
         href = a.get('href','')
-        link = 'https://www.amazon.in' + href.split('?')[0] if href else ''
-        img = ''
-        img_el = c.select_one('img') or c.select_one('img.s-image')
-        if img_el: img = img_el.get('src') or img_el.get('data-src') or ''
-        title = a.get('aria-label') or (a.text.strip()[:200] if a.text else 'Deal')
-        price_el = c.select_one('.priceBlockStrikePriceString') or c.select_one('.a-price-whole') or c.select_one('.p13n-sc-price')
-        price = price_el.text.strip() if price_el else ''
-        deals.append({'title': title, 'link': link, 'affiliate_link': link, 'image': img, 'price_text': price, 'source':'amazon.in'})
-        count += 1
-        time.sleep(0.1)
-    return deals
-
-def save(deals):
-    data = {'generated_at': datetime.datetime.utcnow().isoformat() + 'Z', 'deals': deals}
-    with open(OUT, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+        if '/dp/' not in href: continue
+        asin = href.split('/dp/')[1].split('/')[0]
+        if asin in seen: continue
+        seen.add(asin)
+        link = "https://www.amazon.in/dp/" + asin
+        if AFFILIATE_TAG:
+            if 'tag=' not in link:
+                link = link + "?tag=" + AFFILIATE_TAG
+        title = a.get('title') or a.text.strip() or asin
+        # try find image and price by searching near element
+        img = a.select_one('img')
+        img_url = img.get('src') if img else ''
+        price = ''
+        items.append({'title': title[:200], 'link': link, 'affiliate_link': link, 'image': img_url, 'price_text': price, 'source':'amazon.in'})
+        if len(items) >= limit: break
+        time.sleep(0.05)
+    return {'generated_at': datetime.datetime.utcnow().isoformat() + 'Z', 'deals': items}
 
 if __name__ == '__main__':
-    deals = scrape_deals(30)
-    if not deals:
-        deals = [{'title':'No deals found', 'link':'https://www.amazon.in', 'affiliate_link':'https://www.amazon.in', 'image':'', 'price_text':'', 'source':'amazon.in'}]
-    save(deals)
-    print('Saved', len(deals), 'deals')
+    data = scrape(60)
+    with open(OUT, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    print("Saved", len(data.get('deals',[])))
