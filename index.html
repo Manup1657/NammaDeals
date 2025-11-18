@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NammaDeals — Namma Offers, Namma Savings.</title>
-  <meta name="description" content="NammaDeals: curated Amazon & Flipkart deals for Mysore and Karnataka. Updated frequently." />
+  <meta name="description" content="NammaDeals - curated Amazon deals for Mysuru and Karnataka. Updated frequently." />
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="logo.svg">
 </head>
@@ -19,7 +19,7 @@
     </div>
 
     <div class="center">
-      <input id="search-box" placeholder="Search deals, brands or categories..." aria-label="Search deals" />
+      <input id="searchBox" placeholder="Search deals, brands or categories..." aria-label="Search deals" />
     </div>
 
     <div class="right">
@@ -29,8 +29,10 @@
     </div>
   </header>
 
-  <nav class="categories" id="category-bar" aria-label="Categories">
-    <!-- categories injected by app.js -->
+  <nav class="categories">
+    <select id="categoryList" aria-label="Category filter">
+      <option value="all">All</option>
+    </select>
   </nav>
 
   <main class="main">
@@ -40,20 +42,18 @@
         <p id="hero-desc">Best picks updated frequently</p>
       </div>
       <div class="hero-right" id="hero-rotator">
-        <!-- big rotating Deal of the Day card -->
+        <!-- rotating hero card -->
       </div>
     </section>
 
     <section class="tabs">
       <button class="tab active" data-tab="deals">🔥 Deals</button>
       <button class="tab" data-tab="bestsellers">🏆 Best Sellers</button>
-      <button class="tab" data-tab="flipkart" disabled>🟣 Flipkart (coming)</button>
+      <button class="tab" data-tab="manual">⭐ Manual Picks</button>
     </section>
 
     <section id="content-area">
-      <div id="grid-container" class="grid">
-        <!-- cards dynamically loaded here -->
-      </div>
+      <div id="productGrid" class="grid"></div>
 
       <div id="load-more-wrap">
         <button id="load-more" class="button">Load more</button>
@@ -66,7 +66,7 @@
       <strong>NammaDeals</strong> — Local deals & smart savings.
     </div>
     <div class="f-right">
-      <small>Affiliate Disclosure: we use affiliate links (when active). Read our privacy policy.</small>
+      <small>Affiliate Disclosure: We use affiliate links when active (Amazon Associate ID: discoshop-21).</small>
     </div>
   </footer>
 
