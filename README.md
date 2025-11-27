@@ -1,21 +1,23 @@
+# 🛍️ NammaDeals — Smart Offers for Mysuru, Karnataka & India
 
-# NammaDeals — Local Affiliate Deals Site (Mysuru / Karnataka)
+This project shows real-time Amazon deals and curated Namma Picks.
 
-This repo contains a static single-page site that reads `deals.json` and shows localized deal sections.
-Features:
-- English / Kannada toggle (client-side)
-- WhatsApp + Telegram quick links
-- Local sections: Mysuru, Karnataka, National
-- Price Tracker (browser localStorage stub)
-- Share & Earn referral UI (client-side stub)
-- GitHub Actions workflow to update `deals.json` every 3 hours
+### Features
+- Auto-updates every 30 minutes via GitHub Actions.
+- Manual admin panel (password-protected).
+- Beautiful CRED-style animated UI.
+- Kannada + English friendly.
+- Affiliate ID: **nammadeals-21**
 
-Deploy:
-1. Create a GitHub repo and push these files.
-2. Enable GitHub Pages (branch main, root).
-3. Add secret `AMAZON_ASSOCIATE_TAG` = `discoshop-21` (optional).
-4. Enable Actions. The workflow will try to update `deals.json`. Without secrets, it uses a lightweight scrape fallback.
+### Files
+- `fetch_deals.py` → Lightning deals
+- `fetch_bestsellers.py` → Best sellers
+- `manual_products.json` → Your custom Namma Picks
 
-Notes:
-- For stable affiliate content use Amazon Product Advertising API (PA-API).
-- The price tracker and share/referral are local features (no backend). To make them server-backed later, integrate a small backend (I can help).
+### Deployment
+Hosted via **GitHub Pages**  
+Branch: `main`  
+Folder: `/ (root)`
+
+---
+💡 Built by Manu for modern affiliate automation.
