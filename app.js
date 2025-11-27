@@ -1,9 +1,5 @@
 // CONFIG
-const GITHUB_USER = "Manup1657";
-const REPO = "NammaDeals";
-const BASE_RAW = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/`;
-const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes
-const ADMIN_PASSWORD = "namma@2025"; // 🔐 change this anytime
+const ADMIN_PASSWORD = "namma@2025"; // change this if you like
 
 // STATE
 const state = {
@@ -14,12 +10,12 @@ const state = {
   selectedCategory: "all",
   tab: "deals",
   visibleCount: 20,
-  manualItems: [] // items from manual_products.json + admin-added
+  manualItems: [] // from manual_products.json + admin session
 };
 
 // category inference
 function inferCategory(title = "") {
-  const t = (title || "").toLowerCase();
+  const t = title.toLowerCase();
   if (/phone|mobile|oneplus|samsung|redmi|vivo|oppo|xiaomi|moto|iphone/.test(t)) return "Mobiles";
   if (/earbud|earphone|headphone|speaker|tablet|laptop|charger|power bank|smartwatch/.test(t)) return "Electronics";
   if (/kurta|tshirt|jeans|shoes|saree|dress|hoodie/.test(t)) return "Fashion";
@@ -29,17 +25,12 @@ function inferCategory(title = "") {
   return "Other";
 }
 
-// fetch helper
-async function baseFetch(name) {
-  const url = BASE_RAW + name + "?_=" + Date.now();
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Fetch failed: " + url);
-  return res.json();
-}
-
-async function loadJSON(filename) {
+// load JSON from same site
+async function loadJSON(name) {
   try {
-    const data = await baseFetch(filename);
+    const res = await fetch(name + "?_=" + Date.now());
+    if (!res.ok) throw new Error("fetch failed " + name);
+    const data = await res.json();
     const arr = (data.deals || data.items || []).map(d => ({
       ...d,
       title: d.title || d.name || "",
@@ -50,7 +41,7 @@ async function loadJSON(filename) {
     }));
     return arr;
   } catch (e) {
-    console.error("loadJSON error", filename, e);
+    console.error("loadJSON error", name, e);
     return [];
   }
 }
@@ -67,7 +58,6 @@ async function loadAllSources() {
     items = items.concat(best);
   }
 
-  // manual always loaded
   const manual = await loadJSON("manual_products.json");
   state.manualItems = manual;
   items = (state.tab === "manual" ? manual : manual.concat(items));
@@ -91,11 +81,10 @@ function buildCategoryList() {
 
 function applyFilters() {
   let arr = [...state.items];
-  const s = (state.searchTerm || "").toLowerCase();
+  const s = state.searchTerm.toLowerCase();
   if (s) arr = arr.filter(p => (p.title || "").toLowerCase().includes(s));
-  if (state.selectedCategory && state.selectedCategory !== "all") {
+  if (state.selectedCategory !== "all")
     arr = arr.filter(p => p.category === state.selectedCategory);
-  }
   state.filteredItems = arr;
   const countEl = document.getElementById("deal-count");
   if (countEl) countEl.textContent = `${arr.length} items`;
@@ -107,7 +96,7 @@ function renderProducts() {
   if (!grid) return;
   grid.innerHTML = "";
 
-  if (state.filteredItems.length === 0) {
+  if (!state.filteredItems.length) {
     grid.innerHTML = '<p class="no-results">No products found</p>';
     return;
   }
@@ -125,9 +114,8 @@ function renderProducts() {
     `;
   });
 
-  const loadBtn = document.getElementById("load-more");
   const wrap = document.getElementById("load-more-wrap");
-  if (!loadBtn || !wrap) return;
+  if (!wrap) return;
   wrap.style.display =
     state.visibleCount >= state.filteredItems.length ? "none" : "flex";
 }
@@ -150,25 +138,7 @@ function setHero(item) {
   `;
 }
 
-async function fetchAmazonInfo(url) {
-  const proxy = "https://r.jina.ai/";
-  try {
-    const res = await fetch(proxy + url);
-    const text = await res.text();
-    const title = (text.match(/"productTitle"[^>]*>(.*?)<\/span>/i) || [])[1]
-      ?.replace(/<\/?[^>]+(>|$)/g, "")
-      ?.trim() || "Unknown Title";
-    const price = (text.match(/₹[\d,]+(?:\.\d+)?/) || [])[0] || "Price not found";
-    const img = (text.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%._-]+\.jpg/) || [])[0]
-      || "https://via.placeholder.com/300x180.png?text=No+Image";
-    return { title, price_text: price, image: img };
-  } catch (e) {
-    console.error("Amazon fetch failed:", e);
-    return { title: "Unknown", price_text: "", image: "" };
-  }
-}
-/* ---------- ADMIN PANEL ---------- */
-
+/* ----- ADMIN PANEL ----- */
 function refreshAdminJSON() {
   const out = {
     generated_at: new Date().toISOString(),
@@ -217,33 +187,26 @@ function initAdmin() {
     }
   });
 
-  // add new manual product
-  form.addEventListener("submit", async e => {
+  form.addEventListener("submit", e => {
     e.preventDefault();
+    const title = document.getElementById("a-title").value.trim();
     const link = document.getElementById("a-link").value.trim();
-    const titleInput = document.getElementById("a-title").value.trim();
-    const imgInput = document.getElementById("a-img").value.trim();
-    const priceInput = document.getElementById("a-price").value.trim();
-    const catInput = document.getElementById("a-category").value.trim();
+    const img = document.getElementById("a-img").value.trim();
+    const price = document.getElementById("a-price").value.trim();
+    const cat = document.getElementById("a-category").value.trim();
     const verified = document.getElementById("a-verified").checked;
 
-    if (!link) {
-      alert("Product URL is required");
+    if (!title || !link) {
+      alert("Title and product URL are required");
       return;
     }
-
-    const fetched = await fetchAmazonInfo(link);
-    const title = titleInput || fetched.title;
-    const img = imgInput || fetched.image;
-    const price = priceInput || fetched.price_text;
-    const cat = catInput || inferCategory(title);
 
     const item = {
       title,
       url: link,
       image: img,
       price_text: price,
-      category: cat,
+      category: cat || inferCategory(title),
       verified
     };
 
@@ -253,22 +216,19 @@ function initAdmin() {
       renderProducts();
       setHero(item);
     }
-
     form.reset();
     refreshAdminJSON();
   });
 
-  // copy JSON
   copyBtn.addEventListener("click", () => {
     const ta = document.getElementById("admin-json");
     ta.select();
     document.execCommand("copy");
-    alert("✅ JSON copied. Paste into manual_products.json in GitHub if needed.");
+    alert("JSON copied. Paste into manual_products.json in GitHub if needed.");
   });
 }
 
-/* ---------- DOM INIT ---------- */
-
+/* ----- DOM INIT ----- */
 document.addEventListener("DOMContentLoaded", () => {
   const s = document.getElementById("searchBox");
   if (s) s.addEventListener("input", e => { state.searchTerm = e.target.value; renderProducts(); });
@@ -283,9 +243,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAllSources();
   }));
 
-  loadAllSources();
-  setInterval(() => loadAllSources(), REFRESH_INTERVAL);
-
   const loadBtn = document.getElementById("load-more");
   if (loadBtn) loadBtn.addEventListener("click", () => {
     state.visibleCount += 20;
@@ -297,4 +254,5 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("lang-toggle").addEventListener("click", () => alert("Kannada toggle coming soon"));
 
   initAdmin();
+  loadAllSources();
 });
