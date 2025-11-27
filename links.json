@@ -1,11 +1,18 @@
 {
   "items": [
     {
-      "category": "Best Seller",
+      "title": "Demo Headphones",
+      "price_text": "₹1,499",
+      "image": "https://via.placeholder.com/300x180.png?text=Demo+Product",
       "url": "https://www.amazon.in/dp/B0C1GXYZ/?tag=nammadeals-21",
-      "title": "Sample Bluetooth Speaker",
-      "image": "https://via.placeholder.com/300x180.png?text=Sample+Product",
-      "price_text": "₹1,299"
+      "category": "Best Seller"
+    },
+    {
+      "title": "Smart Watch",
+      "price_text": "₹2,999",
+      "image": "https://via.placeholder.com/300x180.png?text=Smart+Watch",
+      "url": "https://www.amazon.in/dp/B0ABC123/?tag=nammadeals-21",
+      "category": "Electronics"
     }
   ]
 }
