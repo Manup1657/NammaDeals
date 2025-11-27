@@ -150,31 +150,23 @@ function setHero(item) {
   `;
 }
 
-/* ---------- AMAZON AUTO FETCH ---------- */
 async function fetchAmazonInfo(url) {
   const proxy = "https://r.jina.ai/";
   try {
     const res = await fetch(proxy + url);
     const text = await res.text();
-
     const title = (text.match(/"productTitle"[^>]*>(.*?)<\/span>/i) || [])[1]
       ?.replace(/<\/?[^>]+(>|$)/g, "")
       ?.trim() || "Unknown Title";
-
-    const price =
-      (text.match(/₹[\d,]+(?:\.\d+)?/) || [])[0] || "Price not found";
-
-    const img =
-      (text.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%._-]+\.jpg/) || [])[0] ||
-      "https://via.placeholder.com/300x180.png?text=No+Image";
-
+    const price = (text.match(/₹[\d,]+(?:\.\d+)?/) || [])[0] || "Price not found";
+    const img = (text.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%._-]+\.jpg/) || [])[0]
+      || "https://via.placeholder.com/300x180.png?text=No+Image";
     return { title, price_text: price, image: img };
   } catch (e) {
     console.error("Amazon fetch failed:", e);
     return { title: "Unknown", price_text: "", image: "" };
   }
 }
-
 /* ---------- ADMIN PANEL ---------- */
 
 function refreshAdminJSON() {
