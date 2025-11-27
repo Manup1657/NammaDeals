@@ -4,69 +4,136 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NammaDeals — Namma Offers, Namma Savings.</title>
-  <meta name="description" content="NammaDeals - curated Amazon deals for Mysuru and Karnataka. Updated frequently." />
+  <meta name="description" content="NammaDeals - curated Amazon deals for Mysuru, Karnataka & India. Updated automatically and manually by NammaDeals.">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="logo.svg">
 </head>
-<body>
-  <header class="site-header">
-    <div class="left">
-      <img src="logo.svg" alt="NammaDeals" class="logo" />
-      <div class="brand">
-        <div class="brand-name">NammaDeals</div>
-        <div class="brand-sub">ನಮ್ಮ ಡೀಲ್ಸ್ • Namma Offers, Namma Savings.</div>
+<body class="nd-body">
+  <!-- Top Nav -->
+  <header class="nd-header">
+    <div class="nd-header-left">
+      <img src="logo.svg" alt="NammaDeals" class="nd-logo">
+      <div>
+        <div class="nd-brand">NammaDeals</div>
+        <div class="nd-sub">ನಮ್ಮ ಡೀಲ್ಸ್ • Namma Offers, Namma Savings.</div>
       </div>
     </div>
 
-    <div class="center">
-      <input id="searchBox" placeholder="Search deals, brands or categories..." aria-label="Search deals" />
+    <div class="nd-header-center">
+      <input id="searchBox" class="nd-search" placeholder="Search deals, brands or categories..." />
     </div>
 
-    <div class="right">
-      <button id="dark-toggle" class="icon-btn" title="Dark mode">🌓</button>
-      <button id="lang-toggle" class="icon-btn" title="Kannada / English">KN</button>
-      <a id="telegram-link" class="cta" target="_blank">Join Telegram</a>
+    <div class="nd-header-right">
+      <button id="dark-toggle" class="nd-icon-btn" title="Dark / Light">🌓</button>
+      <button id="lang-toggle" class="nd-icon-btn" title="Kannada / English">KN</button>
+      <a id="telegram-link" class="nd-cta" target="_blank" rel="noopener">Join Telegram</a>
     </div>
   </header>
 
-  <nav class="categories">
-    <select id="categoryList" aria-label="Category filter">
-      <option value="all">All</option>
-    </select>
-  </nav>
-
-  <main class="main">
-    <section class="hero">
-      <div class="hero-left">
-        <h1>Deal of the Day</h1>
-        <p id="hero-desc">Best picks updated frequently</p>
+  <!-- Hero / CRED-style card -->
+  <main class="nd-main">
+    <section class="nd-hero">
+      <div class="nd-hero-left">
+        <h1 class="nd-hero-title">Deal of the Day</h1>
+        <p class="nd-hero-text" id="hero-desc">
+          Hand-picked from Amazon bestsellers and lightning deals. Updated frequently.
+        </p>
+        <div class="nd-hero-pills">
+          <span class="nd-pill">Mysuru • Karnataka</span>
+          <span class="nd-pill">Auto-updated</span>
+          <span class="nd-pill">Affiliate ID: nammadeals-21</span>
+        </div>
       </div>
-      <div class="hero-right" id="hero-rotator">
-        <!-- rotating hero card -->
+      <div class="nd-hero-card" id="hero-rotator">
+        <!-- Hero product card injected by app.js -->
       </div>
     </section>
 
-    <section class="tabs">
-      <button class="tab active" data-tab="deals">🔥 Deals</button>
-      <button class="tab" data-tab="bestsellers">🏆 Best Sellers</button>
-      <button class="tab" data-tab="manual">⭐ Manual Picks</button>
+    <!-- Tabs -->
+    <section class="nd-tabs">
+      <button class="nd-tab active" data-tab="deals">🔥 Deals</button>
+      <button class="nd-tab" data-tab="bestsellers">🏆 Best Sellers</button>
+      <button class="nd-tab" data-tab="manual">⭐ Namma Picks</button>
     </section>
 
+    <!-- Category + info -->
+    <section class="nd-toolbar">
+      <select id="categoryList" class="nd-select">
+        <option value="all">All categories</option>
+      </select>
+      <div class="nd-info">
+        <span id="deal-count">0 items</span>
+        <span class="nd-dot"></span>
+        <span>Refreshed every 30 mins</span>
+      </div>
+    </section>
+
+    <!-- Product grid -->
     <section id="content-area">
-      <div id="productGrid" class="grid"></div>
+      <div id="productGrid" class="nd-grid"></div>
+      <div id="load-more-wrap" class="nd-load-wrap">
+        <button id="load-more" class="nd-button">Load more</button>
+      </div>
+    </section>
 
-      <div id="load-more-wrap">
-        <button id="load-more" class="button">Load more</button>
+    <!-- Admin panel (password gated) -->
+    <section class="nd-admin-shell">
+      <button id="admin-open" class="nd-admin-chip">Admin ▸</button>
+      <div id="admin-panel" class="nd-admin nd-admin-hidden">
+        <div class="nd-admin-header">
+          <h2>NammaDeals Admin</h2>
+          <button id="admin-close" class="nd-icon-btn">✕</button>
+        </div>
+
+        <div id="admin-lock">
+          <p>Enter admin password to add Namma Picks.</p>
+          <input type="password" id="admin-pass" class="nd-input" placeholder="Password">
+          <button id="admin-unlock" class="nd-button nd-button-sm">Unlock</button>
+          <small class="nd-muted">Tip: change password in <code>app.js</code> (ADMIN_PASSWORD).</small>
+        </div>
+
+        <div id="admin-body" class="nd-admin-body nd-admin-hidden">
+          <form id="admin-form" class="nd-form">
+            <div class="nd-form-row">
+              <input id="a-title" class="nd-input" placeholder="Title *" required>
+            </div>
+            <div class="nd-form-row">
+              <input id="a-link" class="nd-input" placeholder="Amazon product URL (no tag needed) *" required>
+            </div>
+            <div class="nd-form-row">
+              <input id="a-img" class="nd-input" placeholder="Image URL (optional)">
+            </div>
+            <div class="nd-form-row nd-2col">
+              <input id="a-price" class="nd-input" placeholder="Price text e.g. ₹1,299 (optional)">
+              <input id="a-category" class="nd-input" placeholder="Category (optional)">
+            </div>
+            <div class="nd-form-row">
+              <label class="nd-check">
+                <input type="checkbox" id="a-verified"> Mark as verified
+              </label>
+            </div>
+            <div class="nd-form-row">
+              <button type="submit" class="nd-button nd-button-sm">Add to Namma Picks</button>
+            </div>
+          </form>
+
+          <div class="nd-admin-export">
+            <h3>Manual products JSON (paste this into <code>manual_products.json</code> on GitHub)</h3>
+            <textarea id="admin-json" class="nd-textarea" rows="8" readonly></textarea>
+            <button id="admin-copy" class="nd-button nd-button-sm">Copy JSON</button>
+          </div>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="f-left">
+  <!-- Footer -->
+  <footer class="nd-footer">
+    <div>
       <strong>NammaDeals</strong> — Local deals & smart savings.
     </div>
-    <div class="f-right">
-      <small>Affiliate Disclosure: We use affiliate links when active (Amazon Associate ID: nammadeals-21).</small>
+    <div class="nd-footer-right">
+      <small>Affiliate Disclosure: We use affiliate links (Amazon Associate ID: nammadeals-21).</small>
     </div>
   </footer>
 
