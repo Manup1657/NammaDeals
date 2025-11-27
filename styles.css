@@ -424,4 +424,57 @@ body.dark {
     right: 10px;
     bottom: 10px;
   }
+  .nd-admin {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 320px;
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 140, 60, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 120, 40, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.nd-admin-chip {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-weight: 600;
+  color: #111;
+  background: #ff8a3d;
+  box-shadow: 0 0 10px rgba(255, 100, 40, 0.6);
+  cursor: pointer;
+}
+
+.nd-admin-hidden { display: none !important; }
+
+.nd-input, .nd-textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  color: #eee;
+  margin-top: 5px;
+}
+
+.nd-button {
+  background: #ff8a3d;
+  color: #111;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.nd-button:hover {
+  background: #ffa45b;
+}
 }
