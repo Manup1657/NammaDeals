@@ -1,14 +1,11 @@
 name: Update NammaDeals Data
-
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Runs every 30 minutes
-  workflow_dispatch:        # Allow manual trigger from Actions tab
-
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
 jobs:
   update:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,11 +22,8 @@ jobs:
         env:
           AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
         run: |
-          echo "Running bestsellers fetch..."
           python fetch_bestsellers.py || echo "bestsellers failed"
-          echo "Running deals fetch..."
           python fetch_deals.py || echo "deals failed"
-          echo "Running manual fetch..."
           python fetch_manual_products.py || echo "manual products failed"
 
       - name: Commit updated data
