@@ -1,13 +1,11 @@
 {
-  "generated_at": "2025-11-27T00:00:00Z",
   "items": [
     {
       "category": "Best Seller",
-      "url": "https://amzn.to/4p6BQDr"
-    },
-    {
-      "category": "Mobiles",
-      "url": "https://amzn.to/4pBHP2V"
+      "url": "https://www.amazon.in/dp/B0C1GXYZ/?tag=nammadeals-21",
+      "title": "Sample Bluetooth Speaker",
+      "image": "https://via.placeholder.com/300x180.png?text=Sample+Product",
+      "price_text": "₹1,299"
     }
   ]
 }
