@@ -15,23 +15,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // build category list
+    // categories
     const cats = [...new Set(items.map(i => i.category))];
-    catList.innerHTML = "<option value='all'>All</option>" + cats.map(c => `<option>${c}</option>`).join("");
+    catList.innerHTML =
+      "<option value='all'>All</option>" +
+      cats.map(c => `<option value='${c}'>${c}</option>`).join("");
 
-    // render products
-    grid.innerHTML = items.map(p => `
-      <div class="item-card">
-        <img src="${p.image}" alt="">
-        <h3>${p.title}</h3>
-        <p class="cat">${p.category}</p>
-        <div class="price">${p.price_text}</div>
-        <a class="nd-button" href="${p.url}" target="_blank" rel="noopener">View Deal</a>
-      </div>`).join("");
+    // render
+    grid.innerHTML = items
+      .map(
+        p => `
+        <div class="item-card">
+          <img src="${p.image}" alt="">
+          <h3>${p.title}</h3>
+          <p class="cat">${p.category}</p>
+          <div class="price">${p.price_text}</div>
+          <a class="nd-button" href="${p.url}" target="_blank" rel="noopener">View Deal</a>
+        </div>`
+      )
+      .join("");
 
     countEl.textContent = `${items.length} items`;
-  } catch (e) {
+  } catch (err) {
+    console.error("Error loading links.json", err);
     grid.innerHTML = "<p class='no-results'>Error loading deals</p>";
-    console.error(e);
   }
 });
