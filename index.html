@@ -9,7 +9,7 @@
   <link rel="icon" href="logo.svg">
 </head>
 <body class="nd-body">
-  <!-- Top Nav -->
+  <!-- Header -->
   <header class="nd-header">
     <div class="nd-header-left">
       <img src="logo.svg" alt="NammaDeals" class="nd-logo">
@@ -18,35 +18,24 @@
         <div class="nd-sub">ನಮ್ಮ ಡೀಲ್ಸ್ • Namma Offers, Namma Savings.</div>
       </div>
     </div>
-
     <div class="nd-header-center">
       <input id="searchBox" class="nd-search" placeholder="Search deals, brands or categories..." />
     </div>
-
     <div class="nd-header-right">
-      <button id="dark-toggle" class="nd-icon-btn" title="Dark / Light">🌓</button>
-      <button id="lang-toggle" class="nd-icon-btn" title="Kannada / English">KN</button>
-      <a id="telegram-link" class="nd-cta" target="_blank" rel="noopener">Join Telegram</a>
+      <button id="dark-toggle" class="nd-icon-btn">🌓</button>
+      <button id="lang-toggle" class="nd-icon-btn">KN</button>
+      <a id="telegram-link" class="nd-cta" target="_blank">Join Telegram</a>
     </div>
   </header>
 
-  <!-- Hero / CRED-style card -->
   <main class="nd-main">
+    <!-- Hero -->
     <section class="nd-hero">
       <div class="nd-hero-left">
-        <h1 class="nd-hero-title">Deal of the Day</h1>
-        <p class="nd-hero-text" id="hero-desc">
-          Hand-picked from Amazon bestsellers and lightning deals. Updated frequently.
-        </p>
-        <div class="nd-hero-pills">
-          <span class="nd-pill">Mysuru • Karnataka</span>
-          <span class="nd-pill">Auto-updated</span>
-          <span class="nd-pill">Affiliate ID: nammadeals-21</span>
-        </div>
+        <h1>Deal of the Day</h1>
+        <p id="hero-desc">Curated Amazon bestsellers & lightning deals.</p>
       </div>
-      <div class="nd-hero-card" id="hero-rotator">
-        <!-- Hero product card injected by app.js -->
-      </div>
+      <div class="nd-hero-card" id="hero-rotator"></div>
     </section>
 
     <!-- Tabs -->
@@ -56,19 +45,17 @@
       <button class="nd-tab" data-tab="manual">⭐ Namma Picks</button>
     </section>
 
-    <!-- Category + info -->
+    <!-- Category -->
     <section class="nd-toolbar">
       <select id="categoryList" class="nd-select">
         <option value="all">All categories</option>
       </select>
       <div class="nd-info">
         <span id="deal-count">0 items</span>
-        <span class="nd-dot"></span>
-        <span>Refreshed every 30 mins</span>
       </div>
     </section>
 
-    <!-- Product grid -->
+    <!-- Product Grid -->
     <section id="content-area">
       <div id="productGrid" class="nd-grid"></div>
       <div id="load-more-wrap" class="nd-load-wrap">
@@ -76,64 +63,37 @@
       </div>
     </section>
 
-<!-- Admin panel (auto-fetch version) -->
-<section class="nd-admin-shell">
-  <button id="admin-open" class="nd-admin-chip">Admin ▸</button>
-
-  <div id="admin-panel" class="nd-admin nd-admin-hidden">
-    <div class="nd-admin-header">
-      <h2>NammaDeals Admin</h2>
-      <button id="admin-close" class="nd-icon-btn">✕</button>
-    </div>
-
-    <!-- Locked view -->
-    <div id="admin-lock">
-      <p>Enter admin password to access Namma Picks.</p>
-      <input type="password" id="admin-pass" class="nd-input" placeholder="Password" />
-      <button id="admin-unlock" class="nd-button nd-button-sm">Unlock</button>
-      <small class="nd-muted">Change password in <code>app.js</code> (ADMIN_PASSWORD).</small>
-    </div>
-
-    <!-- Unlocked view -->
-    <div id="admin-body" class="nd-admin-body nd-admin-hidden">
-      <form id="admin-form" class="nd-form">
-        <div class="nd-form-row">
-          <input id="a-link" class="nd-input" placeholder="Paste Amazon product URL *" required />
+    <!-- Admin Panel -->
+    <section class="nd-admin-shell">
+      <button id="admin-open" class="nd-admin-chip">Admin ▸</button>
+      <div id="admin-panel" class="nd-admin nd-admin-hidden">
+        <div class="nd-admin-header">
+          <h2>NammaDeals Admin</h2>
+          <button id="admin-close" class="nd-icon-btn">✕</button>
         </div>
-        <div class="nd-form-row">
-          <input id="a-title" class="nd-input" placeholder="Optional note (e.g. Best Seller, Offer of the Day)" />
+        <div id="admin-lock">
+          <p>Enter admin password to add Namma Picks.</p>
+          <input type="password" id="admin-pass" class="nd-input" placeholder="Password" />
+          <button id="admin-unlock" class="nd-button nd-button-sm">Unlock</button>
         </div>
-        <div class="nd-form-row">
-          <input id="a-category" class="nd-input" placeholder="Category (optional)" />
+        <div id="admin-body" class="nd-admin-body nd-admin-hidden">
+          <form id="admin-form" class="nd-form">
+            <input id="a-link" class="nd-input" placeholder="Paste Amazon product URL *" required />
+            <input id="a-title" class="nd-input" placeholder="Optional note (e.g. Best Seller)" />
+            <input id="a-category" class="nd-input" placeholder="Category (optional)" />
+            <label><input type="checkbox" id="a-verified" /> Mark as verified</label>
+            <button type="submit" class="nd-button nd-button-sm">✨ Add to Namma Picks</button>
+          </form>
+          <textarea id="admin-json" class="nd-textarea" rows="8" readonly></textarea>
+          <button id="admin-copy" class="nd-button nd-button-sm">Copy JSON</button>
         </div>
-        <div class="nd-form-row">
-          <label class="nd-check">
-            <input type="checkbox" id="a-verified" /> Mark as verified
-          </label>
-        </div>
-        <div class="nd-form-row">
-          <button type="submit" class="nd-button nd-button-sm">✨ Add to Namma Picks</button>
-        </div>
-      </form>
-
-      <div class="nd-admin-export">
-        <h3>Manual products JSON (paste into <code>manual_products.json</code> if needed)</h3>
-        <textarea id="admin-json" class="nd-textarea" rows="8" readonly></textarea>
-        <button id="admin-copy" class="nd-button nd-button-sm">Copy JSON</button>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
   </main>
 
-  <!-- Footer -->
   <footer class="nd-footer">
-    <div>
-      <strong>NammaDeals</strong> — Local deals & smart savings.
-    </div>
-    <div class="nd-footer-right">
-      <small>Affiliate Disclosure: We use affiliate links (Amazon Associate ID: nammadeals-21).</small>
-    </div>
+    <div><strong>NammaDeals</strong> — Local deals & smart savings.</div>
+    <div><small>Affiliate Disclosure: Amazon Associate ID: nammadeals-21.</small></div>
   </footer>
 
   <script src="app.js" type="module"></script>
