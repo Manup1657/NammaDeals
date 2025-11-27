@@ -3,7 +3,8 @@ const GITHUB_USER = "Manup1657";
 const REPO = "NammaDeals";
 const BASE_RAW = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/`;
 const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes
-const AFFILIATE_TAG = "nammadeals-21"; // ✅ your affiliate ID
+const AFFILIATE_TAG = "nammadeals-21";
+const ADMIN_PASSWORD = "namma@2025"; // 🔐 change this to anything you like
 
 // STATE
 const state = {
@@ -12,7 +13,9 @@ const state = {
   categories: new Set(),
   searchTerm: "",
   selectedCategory: "all",
-  tab: "deals"
+  tab: "deals",
+  visibleCount: 20,
+  manualItems: [] // items from manual_products.json + admin-added
 };
 
 // category inference
@@ -27,90 +30,272 @@ function inferCategory(title = "") {
   return "Other";
 }
 
+// ensure affiliate tag
+function ensureTag(url = "") {
+  if (!url) return "";
+  if (url.includes("?tag=")) return url;
+  return url + (url.includes("?") ? "&" : "?") + "tag=" + AFFILIATE_TAG;
+}
+
 // fetch helper
 async function baseFetch(name) {
-  const url = BASE_RAW + name + '?_=' + Date.now();
+  const url = BASE_RAW + name + "?_=" + Date.now();
   const res = await fetch(url);
-  if (!res.ok) throw new Error('Fetch failed: ' + url);
+  if (!res.ok) throw new Error("Fetch failed: " + url);
   return res.json();
 }
 
-// load deals or bestsellers or manual
 async function loadJSON(filename) {
   try {
     const data = await baseFetch(filename);
-    // support both "deals"/"items" keys
     const arr = (data.deals || data.items || []).map(d => {
-      const baseURL = d.affiliate_link || d.link || d.url || '';
-      // ✅ ensure affiliate tag is always added
-      const taggedURL = baseURL.includes('?tag=') 
-        ? baseURL 
-        : (baseURL ? baseURL + (baseURL.includes('?') ? '&' : '?') + 'tag=' + AFFILIATE_TAG : '');
+      const baseURL = d.affiliate_link || d.link || d.url || "";
+      const taggedURL = ensureTag(baseURL);
       return {
         ...d,
-        title: d.title || d.name || '',
-        image: d.image || d.img || '',
-        price_text: d.price_text || d.price || '',
+        title: d.title || d.name || "",
+        image: d.image || d.img || "",
+        price_text: d.price_text || d.price || "",
         url: taggedURL,
-        category: d.category || inferCategory(d.title || d.name || '')
+        category: d.category || inferCategory(d.title || d.name || "")
       };
     });
     return arr;
   } catch (e) {
-    console.error('loadJSON error', filename, e);
+    console.error("loadJSON error", filename, e);
     return [];
   }
 }
 
 async function loadAllSources() {
-  state.items = [];
-  if (state.tab === 'deals' || state.tab === 'deals') {
-    const deals = await loadJSON('deals.json');
-    state.items = state.items.concat(deals);
-  }
-  if (state.tab === 'bestsellers' || state.tab === 'deals') {
-    const best = await loadJSON('bestsellers.json');
-    state.items = state.items.concat(best);
-  }
-  // always include manual picks
-  const manu = await loadJSON('manual_products.json');
-  state.items = manu.concat(state.items);
+  let items = [];
 
+  if (state.tab === "deals" || state.tab === "deals") {
+    const deals = await loadJSON("deals.json");
+    items = items.concat(deals);
+  }
+  if (state.tab === "bestsellers" || state.tab === "deals") {
+    const best = await loadJSON("bestsellers.json");
+    items = items.concat(best);
+  }
+
+  // manual always loaded
+  const manual = await loadJSON("manual_products.json");
+  state.manualItems = manual;
+  items = (state.tab === "manual" ? manual : manual.concat(items));
+
+  state.items = items;
   buildCategoryList();
+  state.visibleCount = 20;
   renderProducts();
-  setHero(state.items[0] || null);
+  setHero(items[0] || null);
 }
 
 function buildCategoryList() {
-  state.categories = new Set(state.items.map(i => i.category || 'Other'));
-  const el = document.getElementById('categoryList');
+  state.categories = new Set(state.items.map(i => i.category || "Other"));
+  const el = document.getElementById("categoryList");
   if (!el) return;
-  el.innerHTML = `<option value="all">All</option>`;
-  [...state.categories].forEach(c => {
+  el.innerHTML = `<option value="all">All categories</option>`;
+  [...state.categories].sort().forEach(c => {
     el.innerHTML += `<option value="${c}">${c}</option>`;
   });
 }
 
 function applyFilters() {
   let arr = [...state.items];
-  const s = (state.searchTerm || '').toLowerCase();
-  if (s) arr = arr.filter(p => (p.title || '').toLowerCase().includes(s));
-  if (state.selectedCategory && state.selectedCategory !== 'all')
+  const s = (state.searchTerm || "").toLowerCase();
+  if (s) arr = arr.filter(p => (p.title || "").toLowerCase().includes(s));
+  if (state.selectedCategory && state.selectedCategory !== "all") {
     arr = arr.filter(p => p.category === state.selectedCategory);
+  }
   state.filteredItems = arr;
+  const countEl = document.getElementById("deal-count");
+  if (countEl) countEl.textContent = `${arr.length} items`;
 }
 
 function renderProducts() {
   applyFilters();
-  const grid = document.getElementById('productGrid');
+  const grid = document.getElementById("productGrid");
   if (!grid) return;
-  grid.innerHTML = '';
+  grid.innerHTML = "";
+
   if (state.filteredItems.length === 0) {
     grid.innerHTML = '<p class="no-results">No products found</p>';
     return;
   }
-  state.filteredItems.forEach(p => {
+
+  const itemsToShow = state.filteredItems.slice(0, state.visibleCount);
+  itemsToShow.forEach(p => {
     grid.innerHTML += `
       <div class="item-card">
-        <img src="${p.image || 'https://via.placeholder.com/300x180.png?text=No+Image'}" alt="">
-        <h3>${p.title}</
+        <img src="${p.image || "https://via.placeholder.com/300x180.png?text=No+Image"}" alt="">
+        <h3>${p.title}</h3>
+        <p class="cat">${p.category || ""}</p>
+        <div class="price">${p.price_text || ""}</div>
+        <a class="nd-button" href="${p.url || "#"}" target="_blank" rel="noopener">View Deal</a>
+      </div>
+    `;
+  });
+
+  const loadBtn = document.getElementById("load-more");
+  const wrap = document.getElementById("load-more-wrap");
+  if (!loadBtn || !wrap) return;
+  if (state.visibleCount >= state.filteredItems.length) {
+    wrap.style.display = "none";
+  } else {
+    wrap.style.display = "flex";
+  }
+}
+
+function setHero(item) {
+  const rot = document.getElementById("hero-rotator");
+  if (!rot) return;
+  rot.innerHTML = "";
+  if (!item) {
+    rot.innerHTML = '<div class="item-card">No deal</div>';
+    return;
+  }
+  rot.innerHTML = `
+    <div class="item-card">
+      <img src="${item.image || "https://via.placeholder.com/400x180"}" style="height:180px;object-fit:contain" />
+      <h3>${item.title}</h3>
+      <div class="price">${item.price_text || ""}</div>
+      <a class="nd-button" href="${item.url || "#"}" target="_blank" rel="noopener">View Deal</a>
+    </div>
+  `;
+}
+
+/* ---------- ADMIN PANEL ---------- */
+
+function refreshAdminJSON() {
+  const out = {
+    generated_at: new Date().toISOString(),
+    items: state.manualItems.map(m => ({
+      title: m.title,
+      affiliate_link: m.url,
+      image: m.image,
+      price_text: m.price_text,
+      source: "amazon.in",
+      category: m.category || "",
+      verified: !!m.verified
+    }))
+  };
+  const ta = document.getElementById("admin-json");
+  if (ta) ta.value = JSON.stringify(out, null, 2);
+}
+
+function initAdmin() {
+  const openBtn = document.getElementById("admin-open");
+  const panel = document.getElementById("admin-panel");
+  const closeBtn = document.getElementById("admin-close");
+  const unlockBtn = document.getElementById("admin-unlock");
+  const lockBox = document.getElementById("admin-lock");
+  const bodyBox = document.getElementById("admin-body");
+  const passInput = document.getElementById("admin-pass");
+  const form = document.getElementById("admin-form");
+  const copyBtn = document.getElementById("admin-copy");
+
+  if (!openBtn || !panel) return;
+
+  openBtn.addEventListener("click", () => {
+    panel.classList.toggle("nd-admin-hidden");
+  });
+
+  closeBtn.addEventListener("click", () => {
+    panel.classList.add("nd-admin-hidden");
+  });
+
+  unlockBtn.addEventListener("click", () => {
+    if (passInput.value === ADMIN_PASSWORD) {
+      lockBox.classList.add("nd-admin-hidden");
+      bodyBox.classList.remove("nd-admin-hidden");
+      refreshAdminJSON();
+    } else {
+      alert("Wrong password");
+    }
+  });
+
+  // add new manual product
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const title = document.getElementById("a-title").value.trim();
+    const link = ensureTag(document.getElementById("a-link").value.trim());
+    const img = document.getElementById("a-img").value.trim();
+    const price = document.getElementById("a-price").value.trim();
+    const cat = document.getElementById("a-category").value.trim();
+    const verified = document.getElementById("a-verified").checked;
+
+    if (!title || !link) {
+      alert("Title and product URL are required");
+      return;
+    }
+
+    const item = {
+      title,
+      url: link,
+      image: img,
+      price_text: price,
+      category: cat || inferCategory(title),
+      verified
+    };
+
+    state.manualItems.unshift(item);
+    if (state.tab === "manual") {
+      state.items.unshift(item);
+      renderProducts();
+      setHero(item);
+    }
+
+    form.reset();
+    refreshAdminJSON();
+  });
+
+  // copy JSON
+  copyBtn.addEventListener("click", () => {
+    const ta = document.getElementById("admin-json");
+    ta.select();
+    document.execCommand("copy");
+    alert("JSON copied. Paste into manual_products.json in GitHub.");
+  });
+}
+
+/* ---------- DOM INIT ---------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+  // search
+  const s = document.getElementById("searchBox");
+  if (s) s.addEventListener("input", e => { state.searchTerm = e.target.value; renderProducts(); });
+
+  // category
+  const c = document.getElementById("categoryList");
+  if (c) c.addEventListener("change", e => { state.selectedCategory = e.target.value; renderProducts(); });
+
+  // tabs
+  document.querySelectorAll(".nd-tab").forEach(t => t.addEventListener("click", e => {
+    document.querySelectorAll(".nd-tab").forEach(x => x.classList.remove("active"));
+    e.currentTarget.classList.add("active");
+    state.tab = e.currentTarget.dataset.tab;
+    loadAllSources();
+  }));
+
+  // load initial
+  loadAllSources();
+  setInterval(() => loadAllSources(), REFRESH_INTERVAL);
+
+  // load more
+  const loadBtn = document.getElementById("load-more");
+  if (loadBtn) {
+    loadBtn.addEventListener("click", () => {
+      state.visibleCount += 20;
+      renderProducts();
+    });
+  }
+
+  // links & toggles
+  document.getElementById("telegram-link").href = "https://t.me/NammaDeals";
+  document.getElementById("dark-toggle").addEventListener("click", () => document.body.classList.toggle("dark"));
+  document.getElementById("lang-toggle").addEventListener("click", () => alert("Kannada toggle coming soon"));
+
+  // admin
+  initAdmin();
+});
