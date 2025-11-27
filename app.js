@@ -1,10 +1,8 @@
-// CONFIG
 const AFFILIATE_TAG = "nammadeals-21";
 const LINKS_FILE = "links.json";
-const CACHE_KEY = "NammaDealsCacheV2";
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours cache
+const CACHE_KEY = "NammaDealsCacheV3";
+const CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours cache
 
-// STATE
 const state = {
   items: [],
   filteredItems: [],
@@ -14,77 +12,32 @@ const state = {
   visibleCount: 20
 };
 
-async function fetchAmazonData(url) {
-  const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
-  if (cached[url] && Date.now() - cached[url].time < CACHE_TTL) {
-    return cached[url].data;
-  }
-
-  try {
-    // Use api.allorigins.win to bypass CORS safely
-    const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res = await fetch(apiUrl);
-    const json = await res.json();
-    const text = json.contents;
-
-    const titleMatch = text.match(/<span id="productTitle"[^>]*>(.*?)<\/span>/i);
-    const title = titleMatch
-      ? titleMatch[1].replace(/<[^>]*>/g, "").trim()
-      : "Amazon Product";
-
-    const priceMatch = text.match(/₹[\d,]+(?:\.\d+)?/);
-    const price = priceMatch ? priceMatch[0] : "Price not found";
-
-    const imgMatch = text.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%._-]+\.jpg/);
-    const image = imgMatch
-      ? imgMatch[0]
-      : "https://via.placeholder.com/300x180.png?text=No+Image";
-
-    const data = { title, price_text: price, image };
-
-    cached[url] = { data, time: Date.now() };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cached));
-    return data;
-  } catch (e) {
-    console.error("Error fetching Amazon data:", e);
-    return {
-      title: "Unknown Product",
-      price_text: "",
-      image: "https://via.placeholder.com/300x180.png?text=No+Image"
-    };
-  }
-}
-
-// -------- LOAD LINKS.JSON ----------
+// ---- Load links.json ----
 async function loadLinks() {
   const res = await fetch(LINKS_FILE + "?_=" + Date.now());
   const json = await res.json();
 
-  const results = [];
-  for (const item of json.items) {
+  return json.items.map((item) => {
     const baseUrl = item.url.includes("?tag=")
       ? item.url
       : item.url + (item.url.includes("?") ? "&" : "?") + "tag=" + AFFILIATE_TAG;
 
-    const details = await fetchAmazonData(baseUrl);
-    results.push({
-      title: details.title,
-      image: details.image,
-      price_text: details.price_text,
+    return {
+      title: item.title || "Fetching live info…",
+      price_text: item.price_text || "Price updating...",
+      image: item.image || "https://via.placeholder.com/300x180.png?text=Loading...",
       url: baseUrl,
-      category: item.category || "Other"
-    });
-  }
-
-  return results;
+      category: item.category || "Deals"
+    };
+  });
 }
 
-// -------- UI BUILD ----------
+// ---- Render functions ----
 function buildCategoryList() {
-  state.categories = new Set(state.items.map(i => i.category || "Other"));
+  state.categories = new Set(state.items.map((i) => i.category || "Other"));
   const el = document.getElementById("categoryList");
   el.innerHTML = `<option value="all">All</option>`;
-  [...state.categories].forEach(c => {
+  [...state.categories].forEach((c) => {
     el.innerHTML += `<option value="${c}">${c}</option>`;
   });
 }
@@ -92,9 +45,9 @@ function buildCategoryList() {
 function applyFilters() {
   let arr = [...state.items];
   const s = (state.searchTerm || "").toLowerCase();
-  if (s) arr = arr.filter(p => (p.title || "").toLowerCase().includes(s));
+  if (s) arr = arr.filter((p) => (p.title || "").toLowerCase().includes(s));
   if (state.selectedCategory !== "all")
-    arr = arr.filter(p => p.category === state.selectedCategory);
+    arr = arr.filter((p) => p.category === state.selectedCategory);
   state.filteredItems = arr;
 
   const countEl = document.getElementById("deal-count");
@@ -124,16 +77,16 @@ function renderProducts() {
   }
 }
 
-// -------- INIT ----------
+// ---- Initialize ----
 document.addEventListener("DOMContentLoaded", async () => {
   const s = document.getElementById("searchBox");
-  s.addEventListener("input", e => {
+  s.addEventListener("input", (e) => {
     state.searchTerm = e.target.value;
     renderProducts();
   });
 
   const c = document.getElementById("categoryList");
-  c.addEventListener("change", e => {
+  c.addEventListener("change", (e) => {
     state.selectedCategory = e.target.value;
     renderProducts();
   });
