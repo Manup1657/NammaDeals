@@ -301,95 +301,72 @@ body.nd-body {
   margin-bottom: 8px;
 }
 
-/* Admin panel */
-
-.nd-admin-shell {
+/* Admin Panel Updates */
+.nd-admin {
   position: fixed;
-  bottom: 20px;
+  bottom: 80px;
   right: 20px;
-  z-index: 30;
+  width: 320px;
+  background: rgba(20, 20, 25, 0.95);
+  border: 1px solid rgba(255, 140, 60, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  color: #fff;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 12px rgba(255, 120, 40, 0.4);
 }
 
 .nd-admin-chip {
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  background: rgba(8,14,30,0.9);
-  color: var(--muted);
-  border: 1px solid rgba(255,255,255,0.08);
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-weight: 600;
+  color: #111;
+  background: #ff8a3d;
+  box-shadow: 0 0 10px rgba(255, 100, 40, 0.6);
   cursor: pointer;
 }
 
-.nd-admin {
-  margin-top: 8px;
-  width: 340px;
-  max-height: 80vh;
-  border-radius: 18px;
-  background: radial-gradient(circle at top, rgba(255,138,61,0.11), #050a17);
-  box-shadow: var(--shadow-soft);
-  padding: 12px 14px 14px;
-  display: flex;
-  flex-direction: column;
-}
-
 .nd-admin-hidden {
-  display: none;
+  display: none !important;
 }
 
-.nd-admin-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.nd-input {
-  width: 100%;
-  padding: 7px 9px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(3,6,14,0.9);
-  color: var(--text);
-  font-size: 0.84rem;
-}
-
-.nd-form-row {
-  margin-bottom: 8px;
-}
-
-.nd-2col {
-  display: flex;
-  gap: 6px;
-}
-
-.nd-check {
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
+.nd-input,
 .nd-textarea {
   width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(2,5,12,0.95);
-  color: var(--text);
   padding: 8px;
-  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  color: #eee;
+  margin-top: 5px;
 }
 
-.nd-button-sm {
-  padding: 6px 12px;
-  font-size: 0.8rem;
+.nd-input:focus {
+  outline: none;
+  border-color: #ff8a3d;
+}
+
+.nd-button {
+  background: #ff8a3d;
+  color: #111;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.nd-button:hover {
+  background: #ffa45b;
 }
 
 .nd-muted {
-  font-size: 0.74rem;
-  color: var(--muted);
-}
-
-.nd-admin-export h3 {
-  font-size: 0.86rem;
-  margin-bottom: 4px;
+  color: #aaa;
+  font-size: 12px;
 }
 
 /* Footer */
