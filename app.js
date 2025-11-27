@@ -3,8 +3,7 @@ const GITHUB_USER = "Manup1657";
 const REPO = "NammaDeals";
 const BASE_RAW = `https://raw.githubusercontent.com/${GITHUB_USER}/${REPO}/main/`;
 const REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes
-const AFFILIATE_TAG = "nammadeals-21";
-const ADMIN_PASSWORD = "namma@2025"; // 🔐 change this to anything you like
+const ADMIN_PASSWORD = "namma@2025"; // 🔐 change this anytime
 
 // STATE
 const state = {
@@ -30,13 +29,6 @@ function inferCategory(title = "") {
   return "Other";
 }
 
-// ensure affiliate tag
-function ensureTag(url = "") {
-  if (!url) return "";
-  if (url.includes("?tag=")) return url;
-  return url + (url.includes("?") ? "&" : "?") + "tag=" + AFFILIATE_TAG;
-}
-
 // fetch helper
 async function baseFetch(name) {
   const url = BASE_RAW + name + "?_=" + Date.now();
@@ -48,18 +40,14 @@ async function baseFetch(name) {
 async function loadJSON(filename) {
   try {
     const data = await baseFetch(filename);
-    const arr = (data.deals || data.items || []).map(d => {
-      const baseURL = d.affiliate_link || d.link || d.url || "";
-      const taggedURL = ensureTag(baseURL);
-      return {
-        ...d,
-        title: d.title || d.name || "",
-        image: d.image || d.img || "",
-        price_text: d.price_text || d.price || "",
-        url: taggedURL,
-        category: d.category || inferCategory(d.title || d.name || "")
-      };
-    });
+    const arr = (data.deals || data.items || []).map(d => ({
+      ...d,
+      title: d.title || d.name || "",
+      image: d.image || d.img || "",
+      price_text: d.price_text || d.price || "",
+      url: d.affiliate_link || d.link || d.url || "",
+      category: d.category || inferCategory(d.title || d.name || "")
+    }));
     return arr;
   } catch (e) {
     console.error("loadJSON error", filename, e);
@@ -140,11 +128,8 @@ function renderProducts() {
   const loadBtn = document.getElementById("load-more");
   const wrap = document.getElementById("load-more-wrap");
   if (!loadBtn || !wrap) return;
-  if (state.visibleCount >= state.filteredItems.length) {
-    wrap.style.display = "none";
-  } else {
-    wrap.style.display = "flex";
-  }
+  wrap.style.display =
+    state.visibleCount >= state.filteredItems.length ? "none" : "flex";
 }
 
 function setHero(item) {
@@ -163,6 +148,31 @@ function setHero(item) {
       <a class="nd-button" href="${item.url || "#"}" target="_blank" rel="noopener">View Deal</a>
     </div>
   `;
+}
+
+/* ---------- AMAZON AUTO FETCH ---------- */
+async function fetchAmazonInfo(url) {
+  const proxy = "https://r.jina.ai/";
+  try {
+    const res = await fetch(proxy + url);
+    const text = await res.text();
+
+    const title = (text.match(/"productTitle"[^>]*>(.*?)<\/span>/i) || [])[1]
+      ?.replace(/<\/?[^>]+(>|$)/g, "")
+      ?.trim() || "Unknown Title";
+
+    const price =
+      (text.match(/₹[\d,]+(?:\.\d+)?/) || [])[0] || "Price not found";
+
+    const img =
+      (text.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%._-]+\.jpg/) || [])[0] ||
+      "https://via.placeholder.com/300x180.png?text=No+Image";
+
+    return { title, price_text: price, image: img };
+  } catch (e) {
+    console.error("Amazon fetch failed:", e);
+    return { title: "Unknown", price_text: "", image: "" };
+  }
 }
 
 /* ---------- ADMIN PANEL ---------- */
@@ -216,26 +226,32 @@ function initAdmin() {
   });
 
   // add new manual product
-  form.addEventListener("submit", e => {
+  form.addEventListener("submit", async e => {
     e.preventDefault();
-    const title = document.getElementById("a-title").value.trim();
-    const link = ensureTag(document.getElementById("a-link").value.trim());
-    const img = document.getElementById("a-img").value.trim();
-    const price = document.getElementById("a-price").value.trim();
-    const cat = document.getElementById("a-category").value.trim();
+    const link = document.getElementById("a-link").value.trim();
+    const titleInput = document.getElementById("a-title").value.trim();
+    const imgInput = document.getElementById("a-img").value.trim();
+    const priceInput = document.getElementById("a-price").value.trim();
+    const catInput = document.getElementById("a-category").value.trim();
     const verified = document.getElementById("a-verified").checked;
 
-    if (!title || !link) {
-      alert("Title and product URL are required");
+    if (!link) {
+      alert("Product URL is required");
       return;
     }
+
+    const fetched = await fetchAmazonInfo(link);
+    const title = titleInput || fetched.title;
+    const img = imgInput || fetched.image;
+    const price = priceInput || fetched.price_text;
+    const cat = catInput || inferCategory(title);
 
     const item = {
       title,
       url: link,
       image: img,
       price_text: price,
-      category: cat || inferCategory(title),
+      category: cat,
       verified
     };
 
@@ -255,22 +271,19 @@ function initAdmin() {
     const ta = document.getElementById("admin-json");
     ta.select();
     document.execCommand("copy");
-    alert("JSON copied. Paste into manual_products.json in GitHub.");
+    alert("✅ JSON copied. Paste into manual_products.json in GitHub if needed.");
   });
 }
 
 /* ---------- DOM INIT ---------- */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // search
   const s = document.getElementById("searchBox");
   if (s) s.addEventListener("input", e => { state.searchTerm = e.target.value; renderProducts(); });
 
-  // category
   const c = document.getElementById("categoryList");
   if (c) c.addEventListener("change", e => { state.selectedCategory = e.target.value; renderProducts(); });
 
-  // tabs
   document.querySelectorAll(".nd-tab").forEach(t => t.addEventListener("click", e => {
     document.querySelectorAll(".nd-tab").forEach(x => x.classList.remove("active"));
     e.currentTarget.classList.add("active");
@@ -278,24 +291,18 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAllSources();
   }));
 
-  // load initial
   loadAllSources();
   setInterval(() => loadAllSources(), REFRESH_INTERVAL);
 
-  // load more
   const loadBtn = document.getElementById("load-more");
-  if (loadBtn) {
-    loadBtn.addEventListener("click", () => {
-      state.visibleCount += 20;
-      renderProducts();
-    });
-  }
+  if (loadBtn) loadBtn.addEventListener("click", () => {
+    state.visibleCount += 20;
+    renderProducts();
+  });
 
-  // links & toggles
   document.getElementById("telegram-link").href = "https://t.me/NammaDeals";
   document.getElementById("dark-toggle").addEventListener("click", () => document.body.classList.toggle("dark"));
   document.getElementById("lang-toggle").addEventListener("click", () => alert("Kannada toggle coming soon"));
 
-  // admin
   initAdmin();
 });
