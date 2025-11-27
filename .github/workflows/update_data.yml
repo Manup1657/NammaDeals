@@ -1,8 +1,10 @@
 name: Update NammaDeals Data
+
 on:
   schedule:
     - cron: '*/30 * * * *'
   workflow_dispatch:
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -15,21 +17,16 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4 lxml
-
-      - name: Fetch all deal data
-        env:
-          AMAZON_ASSOCIATE_TAG: ${{ secrets.AMAZON_ASSOCIATE_TAG }}
+      - name: Refresh JSON files
         run: |
-          python fetch_bestsellers.py || echo "bestsellers failed"
-          python fetch_deals.py || echo "deals failed"
-          python fetch_manual_products.py || echo "manual products failed"
+          python fetch_deals.py
+          python fetch_bestsellers.py
+          python fetch_manual_products.py
 
-      - name: Commit updated data
+      - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "actions@github.com"
           git add deals.json bestsellers.json manual_products.json || true
-          git diff --cached --quiet || git commit -m "Auto-update: deals, bestsellers & manual products [$(date +'%Y-%m-%d %H:%M:%S')]"
-          git push origin HEAD:main || echo "No changes to push"
+          git diff --cached --quiet || git commit -m "Auto-update JSON"
+          git push origin HEAD:main || echo "No changes"
