@@ -14,7 +14,6 @@ const state = {
   visibleCount: 20
 };
 
-// -------- FETCH AMAZON DETAILS ----------
 async function fetchAmazonData(url) {
   const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "{}");
   if (cached[url] && Date.now() - cached[url].time < CACHE_TTL) {
@@ -22,11 +21,13 @@ async function fetchAmazonData(url) {
   }
 
   try {
-    const proxy = "https://r.jina.ai/http://";
-    const res = await fetch(proxy + url);
-    const text = await res.text();
+    // Use api.allorigins.win to bypass CORS safely
+    const apiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res = await fetch(apiUrl);
+    const json = await res.json();
+    const text = json.contents;
 
-    const titleMatch = text.match(/"productTitle"[^>]*>(.*?)<\/span>/i);
+    const titleMatch = text.match(/<span id="productTitle"[^>]*>(.*?)<\/span>/i);
     const title = titleMatch
       ? titleMatch[1].replace(/<[^>]*>/g, "").trim()
       : "Amazon Product";
